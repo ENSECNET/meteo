@@ -104,8 +104,9 @@
         .search-container input {
             width: 100%; padding: 10px 12px; background: #000; border: 1px solid var(--me-blue);
             border-radius: 4px; color: #fff; font-family: 'Share Tech Mono', monospace; font-size: 0.9rem; box-sizing: border-box;
-            text-align: left; direction: ltr;
+            text-align: left !important; direction: ltr !important; unicode-bidi: plaintext;
         }
+        #radio-search { text-align: left !important; }
         .search-group.radio .search-container input { border-color: var(--me-orange); }
         .sug-box {
             position: absolute; top: 100%; left: 0; right: 0; background: #090d14;
@@ -130,7 +131,7 @@
         }
 
         /* WEEK FORECAST */
-        .week-forecast { grid-area: forecast; display: grid; gap: 6px; min-height: 0; overflow-y: auto; }
+        .week-forecast { grid-area: forecast; display: grid; gap: 6px; min-height: 260px; overflow-y: auto; }
         .day-card {
             background: rgba(10, 14, 23, 0.8); border: 1px solid rgba(0, 212, 255, 0.1);
             box-sizing: border-box; display: flex; align-items: center; justify-content: space-between; border-radius: 4px;
@@ -234,7 +235,7 @@
 
             .search-container input { padding: 14px 15px; font-size: 1.05rem; }
 
-            .main-layout { grid-template-rows: auto auto auto minmax(160px, 1fr); }
+            .main-layout { grid-template-rows: auto auto auto auto; }
 
             .hero-block { justify-content: center; }
             .me-time { font-size: clamp(2.2rem, 8dvh, 4.4rem); letter-spacing: -3px; }
