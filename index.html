@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>N7 Mass Effect Tactical Station</title>
+    <title>N7 Tactical Station</title>
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="manifest" href="manifest.json">
@@ -104,6 +104,7 @@
         .search-container input {
             width: 100%; padding: 10px 12px; background: #000; border: 1px solid var(--me-blue);
             border-radius: 4px; color: #fff; font-family: 'Share Tech Mono', monospace; font-size: 0.9rem; box-sizing: border-box;
+            text-align: left; direction: ltr;
         }
         .search-group.radio .search-container input { border-color: var(--me-orange); }
         .sug-box {
@@ -120,16 +121,16 @@
         .main-layout {
             flex-grow: 1; min-height: 0; display: grid; gap: 10px;
             grid-template-columns: repeat(6, 1fr);
-            grid-template-rows: auto auto 1fr auto;
+            grid-template-rows: auto auto auto 1fr;
             grid-template-areas:
                 "hero hero hero hero hero hero"
                 "mesto mesto mesto radio radio radio"
-                "forecast forecast forecast forecast forecast forecast"
-                "temp temp hum hum press press";
+                "temp temp hum hum press press"
+                "forecast forecast forecast forecast forecast forecast";
         }
 
         /* WEEK FORECAST */
-        .week-forecast { grid-area: forecast; display: grid; gap: 6px; min-height: 0; }
+        .week-forecast { grid-area: forecast; display: grid; gap: 6px; min-height: 0; overflow-y: auto; }
         .day-card {
             background: rgba(10, 14, 23, 0.8); border: 1px solid rgba(0, 212, 255, 0.1);
             box-sizing: border-box; display: flex; align-items: center; justify-content: space-between; border-radius: 4px;
@@ -197,17 +198,22 @@
             .week-forecast { display: none; }
 
             .hero-block {
-                flex-direction: row; justify-content: center;
+                flex-direction: column; align-items: stretch; justify-content: center; gap: clamp(8px, 1.6dvh, 14px);
                 background: rgba(10, 14, 23, 0.6); border: 1px solid var(--border-color); border-radius: 10px;
-                padding: clamp(8px, 2dvh, 16px) clamp(12px, 3dvh, 22px);
+                padding: clamp(8px, 2dvh, 16px) clamp(14px, 3dvh, 26px);
             }
-            .clock-block { flex: 0 0 auto; }
-            .me-time { font-size: clamp(2.4rem, 10dvh, 5.5rem); letter-spacing: -2px; }
+            /* hodiny hore, na celú šírku, veľký Orbitron font */
+            .clock-block { flex: 0 0 auto; width: 100%; }
+            .me-time { font-size: clamp(3rem, 13dvh, 7rem); letter-spacing: -2px; }
             .me-seconds { font-size: 0.35em; }
-            .eq-row { flex: 1; }
-            #eq-canvas { height: clamp(60px, 14dvh, 100px); }
-            .vol-box { padding: clamp(6px, 1.4dvh, 10px) 10px; }
-            .vol-slider-vert { height: clamp(40px, 9dvh, 70px); }
+            /* tenký ekvalizér cez celú šírku, mute/volume kompaktne vpravo v tej istej tenkej lište */
+            .eq-row { width: 100%; height: clamp(30px, 6.5dvh, 48px); }
+            #eq-canvas { height: 100%; }
+            .vol-box {
+                flex-direction: row; height: 100%; padding: 0 10px; gap: 8px;
+            }
+            .btn-me { width: auto; padding: 0 10px; height: 100%; display: flex; align-items: center; justify-content: center; }
+            .vol-slider-vert { writing-mode: horizontal-tb; direction: ltr; width: clamp(60px, 9vw, 110px); height: 6px; }
 
             .metric-card { padding: clamp(6px, 1.4dvh, 12px); }
             .metric-label { font-size: clamp(0.6rem, 1.4dvh, 0.75rem); }
