@@ -20,11 +20,16 @@
             --border-color: rgba(0, 210, 255, 0.2);
         }
 
+        html { height: 100%; }
+
         body {
             margin: 0; padding: 10px;
             background-color: var(--bg-color); color: var(--me-text);
             font-family: 'Share Tech Mono', monospace;
-            height: 100vh; height: -webkit-fill-available;
+            /* 100vh v mobilnom "web" tabe zarátava aj adresný riadok, preto sa spodok orežal.
+               100dvh (dynamic viewport height) sa prispôsobí skutočnému viditeľnému priestoru
+               rovnako vo web prehliadači aj v nainštalovanej fullscreen "apke". */
+            height: 100vh; height: 100dvh;
             display: flex; flex-direction: column;
             box-sizing: border-box; overflow: hidden;
             background-image: radial-gradient(circle at 50% 50%, #0c101b 0%, #030407 100%);
@@ -141,14 +146,39 @@
            📱 MEDIA QUERIES (LANDSCAPE VS PORTRAIT)
            ========================================= */
         
-        /* 📐 LANDSCAPE (NA LEŽATO) */
+        /* 📐 LANDSCAPE (NA LEŽATO)
+           main-layout je grid s riadkami auto/1fr/auto, takže predpoveď a metriky
+           zaberú presne toľko miesta koľko potrebujú a hodiny vyplnia zvyšok.
+           Všetky písma sú clamp()-nuté na dvh, takže sa CELÁ stránka vždy zmestí
+           na výšku obrazovky (bez orezania) — na malom tablete rovnako ako na 43" monitore,
+           vo web tabe aj v nainštalovanej apke. */
         @media (orientation: landscape) {
+            .header-bar { padding: clamp(4px, 1.2dvh, 8px) 12px; gap: 8px; }
+            .btn-gps, .audio-controls { height: clamp(30px, 6dvh, 42px); }
+            .search-container input { padding: clamp(6px, 1.4dvh, 10px) 12px; font-size: clamp(0.8rem, 1.8dvh, 0.95rem); }
+
+            .main-layout { display: grid; grid-template-rows: auto 1fr auto; gap: clamp(6px, 1.5dvh, 14px); }
+
             .week-forecast { grid-template-columns: repeat(7, 1fr); }
-            .day-card { flex-direction: column; justify-content: space-between; padding: 8px 4px; height: 100%; text-align: center; }
-            .bottom-metrics { grid-template-columns: 1.2fr 1fr 1fr; }
-            .me-time { font-size: 6rem; letter-spacing: -2px; }
+            .day-card { flex-direction: column; justify-content: space-between; padding: clamp(4px, 1dvh, 10px) 4px; height: 100%; text-align: center; }
+            .day-name { font-size: clamp(0.65rem, 1.7dvh, 0.9rem); }
+            .day-date { font-size: clamp(0.6rem, 1.4dvh, 0.75rem); }
+            .day-icon { font-size: clamp(1rem, 2.6dvh, 1.7rem); }
+            .day-temps { font-size: clamp(0.75rem, 1.8dvh, 1rem); }
+            .day-rain { font-size: clamp(0.6rem, 1.4dvh, 0.75rem); }
+
+            .me-clock-box { padding: clamp(8px, 2dvh, 15px); }
+            .me-time { font-size: clamp(2.6rem, 11dvh, 6rem); letter-spacing: -2px; }
             .me-seconds { font-size: 0.35em; }
-            .metric-value { font-size: 3rem; }
+            .me-zone-info { font-size: clamp(0.6rem, 1.6dvh, 0.8rem); }
+            .hint-click { font-size: clamp(0.55rem, 1.2dvh, 0.65rem); }
+
+            .bottom-metrics { grid-template-columns: 1.2fr 1fr 1fr; }
+            .metric-card { padding: clamp(6px, 1.4dvh, 12px); }
+            .metric-label { font-size: clamp(0.6rem, 1.4dvh, 0.75rem); }
+            .metric-value { font-size: clamp(1.6rem, 5dvh, 3rem); }
+            .metric-sub { font-size: clamp(0.65rem, 1.5dvh, 0.8rem); }
+
             .alarm-grid-list { grid-template-columns: repeat(2, 1fr); }
         }
 
