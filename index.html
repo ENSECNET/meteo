@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>N7 Mass Effect Auto-Scaling Weather Station</title>
+    <title>N7 Mass Effect Tactical Station</title>
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="manifest" href="manifest.json">
@@ -33,148 +33,162 @@
         /* SCREENSAVER / DIMMER */
         #screensaver-overlay {
             position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0, 0, 0, 0.93); z-index: 99999;
+            background: rgba(0, 0, 0, 0.95); z-index: 99999;
             display: none; flex-direction: column; justify-content: center; align-items: center;
             cursor: pointer;
         }
-        #ss-clock { font-family: 'Orbitron', sans-serif; font-size: 4.5rem; color: rgba(255, 85, 0, 0.6); font-weight: 700; text-align: center; }
+        #ss-clock { font-family: 'Orbitron', sans-serif; font-size: 5rem; color: rgba(255, 85, 0, 0.6); font-weight: 700; text-align: center; }
         #ss-info { font-size: 1rem; color: rgba(0, 210, 255, 0.4); margin-top: 10px; text-transform: uppercase; }
 
-        /* HEADER BAR (RESPONSIVE FLEX) */
+        /* HEADER BAR */
         .header-bar {
-            display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center;
-            padding: 6px 10px; background: rgba(26, 31, 41, 0.6);
-            border: 1px solid var(--border-color); border-radius: 4px; gap: 6px; margin-bottom: 5px;
+            display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end;
+            padding: 8px 12px; background: rgba(26, 31, 41, 0.6);
+            border: 1px solid var(--border-color); border-radius: 6px; gap: 10px; margin-bottom: 8px;
             flex-shrink: 0;
         }
-        .search-container { position: relative; flex: 1; min-width: 90px; max-width: 140px; }
+        .btn-me {
+            background: rgba(0,0,0,0.5); border: 1px solid var(--me-orange);
+            color: var(--me-orange); font-family: 'Orbitron', sans-serif; font-size: 0.8rem; font-weight: bold; cursor: pointer; text-transform: uppercase;
+            padding: 8px 15px; border-radius: 4px; transition: 0.2s;
+        }
+        .btn-me:hover { background: var(--me-orange); color: #000; }
+        .btn-gps { flex-shrink: 0; height: 42px; }
+
+        .search-group { display: flex; flex-direction: column; flex: 1; min-width: 150px; gap: 5px; }
+        .search-group label { font-size: 0.75rem; color: var(--me-blue); font-weight: bold; text-transform: uppercase; letter-spacing: 1px; }
+        .search-container { position: relative; width: 100%; }
         .search-container input {
-            width: 100%; padding: 5px 8px; background: #000; border: 1px solid var(--me-blue);
-            border-radius: 3px; color: #fff; font-family: 'Share Tech Mono', monospace; font-size: 0.8rem; box-sizing: border-box;
+            width: 100%; padding: 10px 12px; background: #000; border: 1px solid var(--me-blue);
+            border-radius: 4px; color: #fff; font-family: 'Share Tech Mono', monospace; font-size: 0.95rem; box-sizing: border-box;
         }
         .sug-box {
             position: absolute; top: 100%; left: 0; right: 0; background: #090d14;
-            border: 1px solid var(--me-blue); list-style: none; margin: 0; padding: 0; max-height: 120px; overflow-y: auto; z-index: 999;
+            border: 1px solid var(--me-blue); border-top: none; list-style: none; margin: 0; padding: 0; max-height: 150px; overflow-y: auto; z-index: 999;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8); border-radius: 0 0 6px 6px;
         }
-        .sug-box li { padding: 5px 8px; cursor: pointer; border-bottom: 1px solid #141b29; font-size: 0.75rem; }
+        .sug-box li { padding: 10px 12px; cursor: pointer; border-bottom: 1px solid #141b29; font-size: 0.85rem; }
         .sug-box li:hover { background: var(--me-orange); color: #000; }
         
-        .btn-me {
-            padding: 5px 10px; background: transparent; border: 1px solid var(--me-orange);
-            color: var(--me-orange); font-family: 'Orbitron', sans-serif; font-size: 0.75rem; font-weight: bold; cursor: pointer; text-transform: uppercase;
-        }
-        .btn-me:hover { background: var(--me-orange); color: #000; }
-        
-        .audio-controls { display: flex; align-items: center; gap: 6px; background: rgba(0,0,0,0.4); padding: 4px 8px; border-radius: 4px; }
-        .audio-controls label { font-size: 0.7rem; color: var(--me-blue); white-space: nowrap; }
-        .vol-slider { -webkit-appearance: none; width: 50px; height: 4px; background: #333; outline: none; }
-        .vol-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 10px; height: 10px; background: var(--me-blue); cursor: pointer; border-radius: 50%; }
+        .audio-controls { display: flex; align-items: center; gap: 8px; background: rgba(0,0,0,0.4); padding: 6px 12px; border-radius: 4px; height: 42px; box-sizing: border-box; }
+        .vol-slider { -webkit-appearance: none; width: 60px; height: 4px; background: #333; outline: none; }
+        .vol-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 12px; height: 12px; background: var(--me-blue); cursor: pointer; border-radius: 50%; }
 
-        /* MAIN FLEX CONTAINER THAT ADAPTS EXACTLY TO SCREEN HEIGHT WITHOUT SCROLLING */
-        .main-layout {
-            display: flex; flex-direction: column; justify-content: space-between; flex-grow: 1; gap: 8px; min-height: 0;
-        }
+        /* MAIN LAYOUT */
+        .main-layout { display: flex; flex-direction: column; justify-content: space-between; flex-grow: 1; gap: 10px; min-height: 0; }
 
         /* 1. WEEK FORECAST */
-        .week-forecast { display: grid; gap: 4px; min-height: 0; }
+        .week-forecast { display: grid; gap: 6px; min-height: 0; }
         .day-card {
             background: rgba(10, 14, 23, 0.8); border: 1px solid rgba(0, 212, 255, 0.1);
-            box-sizing: border-box; display: flex; align-items: center; justify-content: space-between;
+            box-sizing: border-box; display: flex; align-items: center; justify-content: space-between; border-radius: 4px;
         }
         .day-card.current { border-color: var(--me-orange); background: var(--active-day); }
-        .day-name { font-family: 'Orbitron', sans-serif; font-weight: 700; font-size: 0.8rem; color: var(--me-blue); text-transform: uppercase; }
+        .day-name { font-family: 'Orbitron', sans-serif; font-weight: 700; font-size: 0.85rem; color: var(--me-blue); text-transform: uppercase; }
         .day-card.current .day-name { color: var(--me-orange); }
-        .day-date { font-size: 0.7rem; color: #888; }
-        .day-icon { font-size: 1.4rem; }
-        .day-temps { font-size: 0.85rem; }
+        .day-date { font-size: 0.75rem; color: #888; }
+        .day-icon { font-size: 1.6rem; }
+        .day-temps { font-size: 0.95rem; }
         .day-temps .hi { color: #ff6b6b; font-weight: bold; }
         .day-temps .lo { color: #4dadff; }
-        .day-rain { font-size: 0.7rem; color: #aaa; text-transform: uppercase; }
+        .day-rain { font-size: 0.75rem; color: #aaa; text-transform: uppercase; }
         .day-rain.yes { color: #00d2ff; font-weight: bold; }
 
-        /* 2. CLOCK CONTAINER */
+        /* 2. CLOCK */
         .middle-clock-container { display: flex; justify-content: center; align-items: center; width: 100%; box-sizing: border-box; }
         .me-clock-box {
-            text-align: center; padding: 12px 10px; background: rgba(0, 0, 0, 0.5); width: 100%; box-sizing: border-box;
+            text-align: center; padding: 15px; background: rgba(0, 0, 0, 0.4); width: 100%; box-sizing: border-box;
             border-left: 4px solid var(--me-orange); border-right: 4px solid var(--me-blue);
-            cursor: pointer;
+            cursor: pointer; border-radius: 8px;
         }
-        .me-time { font-family: 'Orbitron', sans-serif; font-weight: 900; color: #fff; line-height: 1; letter-spacing: -1px; width: 100%; display: block; white-space: nowrap; }
-        .me-seconds { font-size: 0.35em; color: var(--me-orange); font-weight: 400; margin-left: 1px; vertical-align: baseline; }
-        .me-zone-info { font-size: 0.75rem; color: #64748b; text-transform: uppercase; letter-spacing: 1px; margin-top: 3px; }
-        .hint-click { font-size: 0.6rem; color: #444; text-transform: uppercase; margin-top: 2px; }
+        .me-time { font-family: 'Orbitron', sans-serif; font-weight: 900; color: #fff; line-height: 1; display: block; }
+        .me-seconds { color: var(--me-orange); font-weight: 400; vertical-align: baseline; }
+        .me-zone-info { font-size: 0.8rem; color: #64748b; text-transform: uppercase; letter-spacing: 2px; margin-top: 5px; }
+        .hint-click { font-size: 0.65rem; color: #555; text-transform: uppercase; margin-top: 5px; }
 
-        /* 3. METRICS GRID */
-        .bottom-metrics { display: grid; gap: 6px; }
+        /* 3. METRICS */
+        .bottom-metrics { display: grid; gap: 8px; }
         .metric-card {
             background: rgba(10, 14, 23, 0.9); border: 1px solid var(--border-color);
-            padding: 8px 12px; display: flex; flex-direction: column; justify-content: center; box-sizing: border-box;
+            padding: 12px; display: flex; flex-direction: column; justify-content: center; box-sizing: border-box; border-radius: 6px;
         }
-        .metric-label { font-size: 0.7rem; color: #556c85; font-weight: bold; letter-spacing: 1px; text-transform: uppercase; }
+        .metric-label { font-size: 0.75rem; color: #556c85; font-weight: bold; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 2px;}
         .metric-card.temp-main { border-left: 4px solid var(--me-blue); }
         .metric-value { font-family: 'Orbitron', sans-serif; font-weight: 700; color: #fff; line-height: 1.1; }
-        .metric-sub { font-size: 0.75rem; color: #8892b0; }
+        .metric-sub { font-size: 0.8rem; color: #8892b0; margin-top: 2px;}
         .metric-sub b { color: var(--me-orange); }
 
         /* ALARM OVERLAY */
         .alarm-overlay {
             position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(3, 4, 7, 0.98); z-index: 10000;
-            display: none; padding: 15px; box-sizing: border-box; flex-direction: column;
+            display: none; padding: 20px; box-sizing: border-box; flex-direction: column;
         }
-        .alarm-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--me-orange); padding-bottom: 6px; margin-bottom: 10px; }
-        .alarm-title { font-family: 'Orbitron', sans-serif; font-size: 1.1rem; color: var(--me-orange); }
-        .alarm-grid-list { display: grid; grid-template-columns: 1fr; gap: 8px; overflow-y: auto; flex: 1; }
-        .alarm-item-card { background: #111622; border: 1px solid #222e45; padding: 8px; display: flex; flex-direction: column; justify-content: space-between; border-radius: 4px; }
+        .alarm-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--me-orange); padding-bottom: 10px; margin-bottom: 15px; }
+        .alarm-title { font-family: 'Orbitron', sans-serif; font-size: 1.3rem; color: var(--me-orange); }
+        .alarm-grid-list { display: grid; gap: 10px; overflow-y: auto; flex: 1; }
+        .alarm-item-card { background: #111622; border: 1px solid #222e45; padding: 12px; display: flex; flex-direction: column; justify-content: space-between; border-radius: 4px; }
         .alarm-item-card.enabled { border-color: var(--me-blue); }
         .alarm-time-row { display: flex; justify-content: space-between; align-items: center; }
-        .alarm-time-picker { background: #000; color: #fff; border: 1px solid var(--me-blue); font-size: 1.1rem; padding: 2px; font-family: monospace; width: 85px;}
-        .alarm-item-card input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--me-orange); }
-        .alarm-config-row { display: flex; gap: 6px; margin-top: 4px; align-items: center; font-size: 0.75rem; }
-        .alarm-sound-select { background: #000; color: #fff; border: 1px solid #445; padding: 3px; flex: 1; font-size: 0.75rem; }
+        .alarm-time-picker { background: #000; color: #fff; border: 1px solid var(--me-blue); font-size: 1.3rem; padding: 4px; font-family: monospace; width: 100px;}
+        .alarm-item-card input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--me-orange); }
+        .alarm-config-row { display: flex; gap: 8px; margin-top: 8px; align-items: center; font-size: 0.85rem; }
+        .alarm-sound-select { background: #000; color: #fff; border: 1px solid #445; padding: 5px; flex: 1; font-size: 0.85rem; }
 
         .unit { font-size: 0.45em; vertical-align: super; font-weight: normal; color: #64748b; }
-        .wakelock-status { font-size: 0.65rem; color: #4ade80; text-transform: uppercase; }
+        .wakelock-status { font-size: 0.7rem; color: #4ade80; text-transform: uppercase; float: right; }
 
-        /* =========================================================================
-           📱 PERFECT ADJUSTMENTS FOR LANDSCAPE AND COMPACT PORTRAIT PHONE DOCKING
-           ========================================================================= */
+        /* =========================================
+           📱 MEDIA QUERIES (LANDSCAPE VS PORTRAIT)
+           ========================================= */
         
-        /* 📐 LANDSCAPE MODE (NA LEŽATO - SPREAD ACROSS WIDTH) */
+        /* 📐 LANDSCAPE (NA LEŽATO) */
         @media (orientation: landscape) {
             .week-forecast { grid-template-columns: repeat(7, 1fr); }
-            .day-card { flex-direction: column; justify-content: space-between; padding: 6px 2px; height: 100%; text-align: center; }
+            .day-card { flex-direction: column; justify-content: space-between; padding: 8px 4px; height: 100%; text-align: center; }
             .bottom-metrics { grid-template-columns: 1.2fr 1fr 1fr; }
-            .me-time { font-size: 5.5rem; }
-            .metric-value { font-size: 2.8rem; }
+            .me-time { font-size: 6rem; letter-spacing: -2px; }
+            .me-seconds { font-size: 0.35em; }
+            .metric-value { font-size: 3rem; }
             .alarm-grid-list { grid-template-columns: repeat(2, 1fr); }
         }
 
-        /* 📱 PORTRAIT MODE (NA STOJATO - ULTRA SCALED TO FIT ONE SINGLE SCREEN) */
+        /* 📱 PORTRAIT (NA STOJATO) */
         @media (orientation: portrait) {
-            body { padding: 6px; justify-content: flex-start; }
-            .main-layout { justify-content: flex-start; gap: 6px; }
+            body { padding: 12px; gap: 15px; }
             
-            /* Order elements smoothly: Header -> Metrics -> Clock (Edge to edge) -> Forecast rows */
-            .bottom-metrics { order: 1; grid-template-columns: repeat(3, 1fr); gap: 4px; } /* Combined into one row so icons/metrics are tiny and not wide! */
-            .metric-card { padding: 4px 6px; text-align: center; align-items: center; }
-            .metric-label { font-size: 0.55rem; white-space: nowrap; }
-            .metric-value { font-size: 1.4rem; }
-            .metric-sub { font-size: 0.6rem; display: none; } /* Hide subtext to avoid scrolling */
+            /* HEADER - Full width elements stacked */
+            .header-bar { flex-direction: column; align-items: stretch; padding: 15px; gap: 15px; border-radius: 8px; }
+            .btn-gps { padding: 16px; font-size: 1.15rem; width: 100%; height: auto; }
+            .search-group { width: 100%; }
+            .search-container input { padding: 14px 15px; font-size: 1.1rem; }
+            .audio-controls { justify-content: space-between; padding: 12px; height: auto; }
+            .vol-slider { width: 100px; }
+            
+            /* MAIN LAYOUT REORDER */
+            .main-layout { justify-content: center; gap: 10px; }
+            
+            /* 1. CLOCK HUGE */
+            .middle-clock-container { order: 1; margin: 20px 0; flex-grow: 1; }
+            .me-time { font-size: 18vw; letter-spacing: -3px; } 
+            .me-seconds { font-size: 6vw; }
+            
+            /* 2. FORECAST SLIM ROWS */
+            .week-forecast { order: 2; grid-template-columns: 1fr; gap: 4px; }
+            .day-card { padding: 8px 12px; border-radius: 6px; }
+            .day-name { font-size: 0.85rem; min-width: 45px; }
+            .day-date { font-size: 0.8rem; min-width: 45px; }
+            .day-icon { font-size: 1.3rem; }
+            .day-temps { font-size: 0.9rem; min-width: 60px; text-align: right; }
+            .day-rain { font-size: 0.8rem; min-width: 80px; text-align: right; }
 
-            .middle-clock-container { order: 2; margin: 4px 0; width: 100%; }
-            .me-clock-box { padding: 10px 4px; border-left-width: 3px; border-right-width: 3px; }
-            /* Use viewport width sizing to force the clock to explicitly sit from absolute edge to edge */
-            .me-time { font-size: 14vw; letter-spacing: -2px; } 
-            .me-seconds { font-size: 0.35em; }
-            .me-zone-info { font-size: 0.65rem; margin-top: 1px; }
-
-            .week-forecast { order: 3; grid-template-columns: 1fr; gap: 3px; overflow: hidden; } /* Fully fit inside view */
-            .day-card { padding: 3px 8px; border-radius: 2px; }
-            .day-name { font-size: 0.7rem; min-width: 35px; text-align: left; }
-            .day-date { font-size: 0.65rem; min-width: 35px; text-align: left; }
-            .day-icon { font-size: 1.1rem; }
-            .day-temps { font-size: 0.75rem; min-width: 50px; text-align: right; }
-            .day-rain { font-size: 0.65rem; min-width: 70px; text-align: right; }
+            /* 3. METRICS AT BOTTOM */
+            .bottom-metrics { order: 3; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 10px; } 
+            .metric-card { padding: 10px 5px; text-align: center; align-items: center; border-radius: 6px; }
+            .metric-label { font-size: 0.65rem; white-space: nowrap; }
+            .metric-value { font-size: 1.6rem; margin-top: 4px; }
+            .metric-sub { display: none; } /* Hide extra text to keep it clean */
+            
+            .alarm-grid-list { grid-template-columns: 1fr; }
         }
     </style>
 </head>
@@ -188,22 +202,29 @@
 
     <!-- CONTROL HEADER -->
     <div class="header-bar">
-        <button class="btn-me" onclick="getLocationByGPS()">GPS 📍</button>
-        <div class="search-container">
-            <input type="text" id="city-search" placeholder="Mesto..." oninput="searchCity()">
-            <ul id="city-sug" class="sug-box"></ul>
+        <button class="btn-me btn-gps" onclick="getLocationByGPS()">GPS 📍 Zamerať Polohu</button>
+        
+        <div class="search-group">
+            <label>Mesto pre počasie <span id="wl-indicator" class="wakelock-status">[WAKE ON]</span></label>
+            <div class="search-container">
+                <input type="text" id="city-search" placeholder="Hľadať mesto..." oninput="searchCity()" onfocus="this.select()">
+                <ul id="city-sug" class="sug-box"></ul>
+            </div>
         </div>
-        <div style="font-size: 0.8rem; font-weight: bold; color: var(--me-blue);" id="current-city">Bratislava <span id="wl-indicator" class="wakelock-status">[WAKE ON]</span></div>
-        <div class="search-container">
-            <input type="text" id="radio-search" placeholder="Rádio..." oninput="searchRadio()">
-            <ul id="radio-sug" class="sug-box"></ul>
+        
+        <div class="search-group">
+            <label>Internetové Rádio</label>
+            <div class="search-container">
+                <input type="text" id="radio-search" placeholder="Hľadať rádio..." oninput="searchRadio()" onfocus="this.select()">
+                <ul id="radio-sug" class="sug-box"></ul>
+            </div>
         </div>
+        
         <div class="audio-controls">
-            <label id="active-station-label">Rádio: Výchozie</label>
             <input type="range" id="vol-control" class="vol-slider" min="0" max="1" step="0.05" value="0.7" oninput="setVolume(this.value)">
-            <button class="btn-me" style="padding:2px 5px; font-size:0.65rem;" id="btn-mute" onclick="toggleMute()">Mute</button>
+            <button class="btn-me" style="padding:6px 12px; border-color:var(--me-blue); color:var(--me-blue);" id="btn-mute" onclick="toggleMute()">Mute</button>
+            <button class="btn-me" style="padding:6px 12px; border-color:#4ade80; color:#4ade80;" onclick="enableScreensaver()">Dim 🌙</button>
         </div>
-        <button class="btn-me" style="border-color: #4ade80; color: #4ade80;" onclick="enableScreensaver()">Dim 🌙</button>
     </div>
 
     <!-- DYNAMIC CORE LAYOUT -->
@@ -261,7 +282,6 @@
 
         const streamPlayer = document.getElementById('stream-player');
         const daysSk = ["Nedeľa", "Pondelok", "Utorok", "Streda", "Štvrtok", "Piatok", "Sobota"];
-
         const weatherIcons = {
             0: "☀️", 1: "🌤️", 2: "⛅", 3: "☁️", 45: "🌫️", 48: "🌫️",
             51: "🌧️", 53: "🌧️", 55: "🌧️", 61: "🌧️", 63: "🌧️", 65: "🌧️",
@@ -275,7 +295,7 @@
             }
         }
 
-        document.getElementById('active-station-label').textContent = `Rádio: ${lastRadioName}`;
+        document.getElementById('radio-search').value = lastRadioName;
         streamPlayer.volume = parseFloat(document.getElementById('vol-control').value);
 
         async function requestWakeLock() {
@@ -291,6 +311,12 @@
             if (wakeLock !== null && document.visibilityState === 'visible') await requestWakeLock();
         });
         document.addEventListener('click', () => { if(!wakeLock) requestWakeLock(); }, { once: true });
+
+        // Close dropdowns on outside click
+        document.addEventListener('click', (e) => {
+            if(!e.target.closest('#city-search') && !e.target.closest('#city-sug')) document.getElementById('city-sug').innerHTML = '';
+            if(!e.target.closest('#radio-search') && !e.target.closest('#radio-sug')) document.getElementById('radio-sug').innerHTML = '';
+        });
 
         let ssTimeout;
         function resetScreensaverTimer() { clearTimeout(ssTimeout); ssTimeout = setTimeout(enableScreensaver, 300000); }
@@ -322,7 +348,7 @@
         setInterval(updateClock, 1000); updateClock();
 
         async function fetchWeather() {
-            document.getElementById('current-city').childNodes[0].textContent = currentLoc.name + " ";
+            document.getElementById('city-search').value = currentLoc.name;
             const url = `https://api.open-meteo.com/v1/forecast?latitude=${currentLoc.lat}&longitude=${currentLoc.lon}&current=temperature_2m,relative_humidity_2m,weather_code,pressure_msl,wind_speed_10m&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=auto`;
             
             try {
@@ -410,7 +436,7 @@
                         li.onclick = () => {
                             currentLoc = { name: city.name, lat: city.latitude, lon: city.longitude };
                             localStorage.setItem('selected_location', JSON.stringify(currentLoc));
-                            fetchWeather(); box.innerHTML = ''; document.getElementById('city-search').value = '';
+                            fetchWeather(); box.innerHTML = '';
                         }; box.appendChild(li);
                     });
                 }
@@ -419,6 +445,7 @@
 
         function getLocationByGPS() {
             if (navigator.geolocation) {
+                document.getElementById('city-search').value = "Hľadám GPS...";
                 navigator.geolocation.getCurrentPosition(position => {
                     currentLoc = { name: "📍 Lokálna GPS", lat: position.coords.latitude, lon: position.coords.longitude };
                     localStorage.setItem('selected_location', JSON.stringify(currentLoc)); fetchWeather();
@@ -438,8 +465,8 @@
                         li.onclick = () => {
                             lastRadioUrl = st.url_resolved; lastRadioName = st.name;
                             localStorage.setItem('last_radio_url', lastRadioUrl); localStorage.setItem('last_radio_name', lastRadioName);
-                            document.getElementById('active-station-label').textContent = `Rádio: ${st.name}`;
-                            streamPlayer.src = lastRadioUrl; streamPlayer.play(); box.innerHTML = ''; document.getElementById('radio-search').value = '';
+                            document.getElementById('radio-search').value = st.name;
+                            streamPlayer.src = lastRadioUrl; streamPlayer.play(); box.innerHTML = '';
                         }; box.appendChild(li);
                     }
                 });
