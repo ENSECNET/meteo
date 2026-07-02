@@ -204,7 +204,7 @@
             }
             /* hodiny hore, na celú šírku, veľký Orbitron font */
             .clock-block { flex: 0 0 auto; width: 100%; }
-            .me-time { font-size: clamp(3rem, 13dvh, 7rem); letter-spacing: -2px; }
+            .me-time { font-size: clamp(6rem, 26dvh, 14rem); letter-spacing: -2px; }
             .me-seconds { font-size: 0.35em; }
             /* tenký ekvalizér cez celú šírku, mute/volume kompaktne vpravo v tej istej tenkej lište */
             .eq-row { width: 100%; height: clamp(30px, 6.5dvh, 48px); }
@@ -234,8 +234,13 @@
 
             .search-container input { padding: 14px 15px; font-size: 1.05rem; }
 
-            .me-time { font-size: 16vw; letter-spacing: -3px; }
-            .me-seconds { font-size: 5.5vw; }
+            .main-layout { grid-template-rows: auto auto auto minmax(190px, 1fr); }
+
+            /* hodiny/ekvalizér teraz škálované podľa výšky obrazovky (dvh), nie podľa šírky (vw) —
+               vďaka tomu vždy ostane reálny priestor pre 7-dňovú predpoveď pod nimi */
+            .me-time { font-size: clamp(2.4rem, 9dvh, 4.8rem); letter-spacing: -3px; }
+            .me-seconds { font-size: 0.3em; }
+            #eq-canvas { height: clamp(46px, 8dvh, 80px); }
 
             .week-forecast { grid-template-columns: 1fr; gap: 4px; }
             .day-card { padding: 8px 12px; border-radius: 6px; }
@@ -548,7 +553,7 @@
                         <div class="day-name">${i===0?"Dnes":daysSk[fDate.getDay()].substring(0,3)}</div>
                         <div class="day-date">${fDate.toLocaleDateString('sk-SK',{day:'numeric',month:'numeric.'})}</div>
                         <div class="day-icon">${weatherIcons[data.daily.weather_code[i]]||"☁️"}</div>
-                        <div class="day-temps"><span class="hi">${Math.round(data.daily.temperature_2m_max[i])}°</span> / <span class="lo">${Math.round(data.daily.temperature_2m_min[i])}°</span></div>
+                        <div class="day-temps"><span class="hi" title="Deň">☀️${Math.round(data.daily.temperature_2m_max[i])}°</span> / <span class="lo" title="Noc">🌙${Math.round(data.daily.temperature_2m_min[i])}°</span></div>
                         <div class="day-rain ${probRain>30?'yes':''}">${probRain>30?`Prší (${probRain}%)`:'Neprší'}</div>
                     `;
                     weekBar.appendChild(card);
