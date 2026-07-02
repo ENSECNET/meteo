@@ -70,7 +70,6 @@
 
         /* HERO: HODINY + EKVALIZÉR + MUTE/VOLUME */
         .hero-block {
-            grid-area: hero;
             display: flex; flex-direction: column; align-items: center; gap: 14px;
             box-sizing: border-box; width: 100%; min-height: 0;
         }
@@ -96,8 +95,8 @@
 
         /* SEARCH: MESTO / RÁDIO */
         .search-group { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
-        .search-group.mesto { grid-area: mesto; }
-        .search-group.radio { grid-area: radio; }
+        .search-group.mesto {}
+        .search-group.radio {}
         .search-group label { font-size: 0.7rem; color: var(--me-blue); font-weight: bold; text-transform: uppercase; letter-spacing: 1px; display: flex; align-items: center; gap: 6px; }
         .search-group.radio label { color: var(--me-orange); }
         .search-container { position: relative; width: 100%; }
@@ -117,24 +116,22 @@
         .sug-box li:hover { background: var(--me-orange); color: #000; }
         .wakelock-status { font-size: 0.6rem; color: #4ade80; }
 
-        /* MAIN LAYOUT — CSS grid s pomenovanými oblasťami, aby sme vedeli poprehadzovať
-           poradie medzi na stojaka a na ležato bez duplikovania HTML. */
+        /* MAIN LAYOUT — flexbox s poradím podľa DOM (žiadne grid-template-areas prehadzovanie,
+           kvôli spoľahlivosti naprieč mobilnými prehliadačmi). */
         .main-layout {
-            flex-grow: 1; min-height: 0; display: grid; gap: 10px;
-            grid-template-columns: repeat(6, 1fr);
-            grid-template-rows: auto auto auto 1fr;
-            grid-template-areas:
-                "hero hero hero hero hero hero"
-                "mesto mesto mesto radio radio radio"
-                "temp temp hum hum press press"
-                "forecast forecast forecast forecast forecast forecast";
+            flex-grow: 1; min-height: 0; display: flex; flex-direction: column; gap: 10px;
         }
+        .row-search { display: flex; gap: 10px; }
+        .row-search .search-group { flex: 1; min-width: 0; }
+        .row-metrics { display: flex; gap: 8px; }
+        .row-metrics .metric-card { flex: 1; min-width: 0; }
 
         /* WEEK FORECAST */
-        .week-forecast { grid-area: forecast; display: grid; gap: 6px; min-height: 260px; overflow-y: auto; }
+        .week-forecast { display: flex; flex-direction: column; gap: 6px; min-height: 260px; flex: 1 1 auto; overflow-y: auto; }
         .day-card {
             background: rgba(10, 14, 23, 0.8); border: 1px solid rgba(0, 212, 255, 0.1);
             box-sizing: border-box; display: flex; align-items: center; justify-content: space-between; border-radius: 4px;
+            flex-shrink: 0;
         }
         .day-card.current { border-color: var(--me-orange); background: var(--active-day); }
         .day-name { font-family: 'Orbitron', sans-serif; font-weight: 700; font-size: 0.85rem; color: var(--me-blue); text-transform: uppercase; }
@@ -152,9 +149,9 @@
             background: rgba(10, 14, 23, 0.9); border: 1px solid var(--border-color);
             padding: 12px; display: flex; flex-direction: column; justify-content: center; box-sizing: border-box; border-radius: 6px;
         }
-        .metric-card.temp { grid-area: temp; border-left: 4px solid var(--me-blue); }
-        .metric-card.hum { grid-area: hum; }
-        .metric-card.press { grid-area: press; }
+        .metric-card.temp { border-left: 4px solid var(--me-blue); }
+        .metric-card.hum {}
+        .metric-card.press {}
         .metric-label { font-size: 0.75rem; color: #556c85; font-weight: bold; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 2px;}
         .metric-value { font-family: 'Orbitron', sans-serif; font-weight: 700; color: #fff; line-height: 1.1; }
         .metric-sub { font-size: 0.8rem; color: #8892b0; margin-top: 2px;}
@@ -189,14 +186,17 @@
             .icon-btn { font-size: 1rem; padding: 0 10px; }
             .ticker-track { font-size: clamp(0.65rem, 1.6dvh, 0.8rem); }
 
-            .main-layout {
-                grid-template-columns: repeat(5, 1fr);
-                grid-template-rows: 1fr auto;
-                grid-template-areas:
-                    "hero hero hero hero hero"
-                    "temp hum press mesto radio";
-            }
+            .main-layout { flex-direction: row; flex-wrap: wrap; align-content: flex-start; }
+            .hero-block { order: 1; flex: 1 1 100%; }
             .week-forecast { display: none; }
+            /* row-search a row-metrics sa "rozbalia" — ich deti (mesto/rádio/teplota/vlhkosť/tlak)
+               sa stanú priamymi flex prvkami main-layoutu, takže ich vieme voľne poprehadzovať cez order */
+            .row-search, .row-metrics { display: contents; }
+            .metric-card.temp { order: 2; flex: 1 1 18%; }
+            .metric-card.hum { order: 3; flex: 1 1 18%; }
+            .metric-card.press { order: 4; flex: 1 1 18%; }
+            .search-group.mesto { order: 5; flex: 1 1 22%; }
+            .search-group.radio { order: 6; flex: 1 1 22%; }
 
             .hero-block {
                 flex-direction: column; align-items: stretch; justify-content: center; gap: clamp(8px, 1.6dvh, 14px);
@@ -235,8 +235,6 @@
 
             .search-container input { padding: 14px 15px; font-size: 1.05rem; }
 
-            .main-layout { grid-template-rows: auto auto auto auto; }
-
             .hero-block { justify-content: center; }
             .me-time { font-size: clamp(2.2rem, 8dvh, 4.4rem); letter-spacing: -3px; }
             .me-seconds { font-size: 0.3em; }
@@ -245,7 +243,7 @@
             .vol-slider-vert { height: clamp(36px, 5dvh, 54px); }
             .btn-me { padding: 4px 8px; font-size: 0.6rem; }
 
-            .week-forecast { grid-template-columns: 1fr; gap: 4px; }
+            .week-forecast { gap: 4px; }
             .day-card { padding: 8px 12px; border-radius: 6px; }
             .day-name { font-size: 0.85rem; min-width: 45px; }
             .day-date { font-size: 0.8rem; min-width: 45px; }
@@ -298,21 +296,21 @@
             </div>
         </div>
 
-        <!-- MESTO -->
-        <div class="search-group mesto">
-            <label>Mesto <span id="wl-indicator" class="wakelock-status">●</span></label>
-            <div class="search-container">
-                <input type="text" id="city-search" placeholder="Hľadať mesto..." oninput="searchCity()" onfocus="this.select()">
-                <ul id="city-sug" class="sug-box"></ul>
+        <!-- MESTO + RÁDIO -->
+        <div class="row-search">
+            <div class="search-group mesto">
+                <label>Mesto <span id="wl-indicator" class="wakelock-status">●</span></label>
+                <div class="search-container">
+                    <input type="text" id="city-search" placeholder="Hľadať mesto..." oninput="searchCity()" onfocus="this.select()">
+                    <ul id="city-sug" class="sug-box"></ul>
+                </div>
             </div>
-        </div>
-
-        <!-- RÁDIO -->
-        <div class="search-group radio">
-            <label>Rádio</label>
-            <div class="search-container">
-                <input type="text" id="radio-search" placeholder="Hľadať rádio..." oninput="searchRadio()" onfocus="this.select()">
-                <ul id="radio-sug" class="sug-box"></ul>
+            <div class="search-group radio">
+                <label>Rádio</label>
+                <div class="search-container">
+                    <input type="text" id="radio-search" placeholder="Hľadať rádio..." oninput="searchRadio()" onfocus="this.select()">
+                    <ul id="radio-sug" class="sug-box"></ul>
+                </div>
             </div>
         </div>
 
@@ -320,20 +318,22 @@
         <div class="week-forecast" id="week-bar"></div>
 
         <!-- METRIKY -->
-        <div class="metric-card temp">
-            <div class="metric-label">Teplota</div>
-            <div class="metric-value"><span id="curr-temp">--.-</span><span class="unit">°C</span></div>
-            <div class="metric-sub">Max: <b id="curr-hi">--°C</b></div>
-        </div>
-        <div class="metric-card hum">
-            <div class="metric-label">Vlhkosť</div>
-            <div class="metric-value"><span id="curr-hum">--</span><span class="unit">%</span></div>
-            <div class="metric-sub">Vietor: <b id="curr-wind">-- km/h</b></div>
-        </div>
-        <div class="metric-card press">
-            <div class="metric-label">Tlak</div>
-            <div class="metric-value"><span id="curr-press">----</span><span class="unit">hPa</span></div>
-            <div class="metric-sub">N7 Station</div>
+        <div class="row-metrics">
+            <div class="metric-card temp">
+                <div class="metric-label">Teplota</div>
+                <div class="metric-value"><span id="curr-temp">--.-</span><span class="unit">°C</span></div>
+                <div class="metric-sub">Max: <b id="curr-hi">--°C</b></div>
+            </div>
+            <div class="metric-card hum">
+                <div class="metric-label">Vlhkosť</div>
+                <div class="metric-value"><span id="curr-hum">--</span><span class="unit">%</span></div>
+                <div class="metric-sub">Vietor: <b id="curr-wind">-- km/h</b></div>
+            </div>
+            <div class="metric-card press">
+                <div class="metric-label">Tlak</div>
+                <div class="metric-value"><span id="curr-press">----</span><span class="unit">hPa</span></div>
+                <div class="metric-sub">N7 Station</div>
+            </div>
         </div>
     </div>
 
@@ -371,7 +371,16 @@
             }
         }
 
-        document.getElementById('radio-search').value = lastRadioName;
+        /* Keď sa do inputu najprv napíše dlhší hľadaný text, prehliadač si posunie scroll pozíciu
+           poľa doprava (aby bol vidno kurzor). Obyčajné el.value = "..." tento scroll nevynuluje,
+           takže nový (kratší) text vyzerá orezaný/posunutý. Táto funkcia to opravuje. */
+        function setInputValue(el, val) {
+            el.value = val;
+            el.scrollLeft = 0;
+            try { el.setSelectionRange(0, 0); } catch(e) {}
+        }
+
+        setInputValue(document.getElementById('radio-search'), lastRadioName);
         streamPlayer.volume = parseFloat(document.getElementById('vol-control').value);
 
         /* ========== TICKER (rádio naživo + burza) ==========
@@ -535,7 +544,7 @@
         setInterval(updateClock, 1000); updateClock();
 
         async function fetchWeather() {
-            document.getElementById('city-search').value = currentLoc.name;
+            setInputValue(document.getElementById('city-search'), currentLoc.name);
             const url = `https://api.open-meteo.com/v1/forecast?latitude=${currentLoc.lat}&longitude=${currentLoc.lon}&current=temperature_2m,relative_humidity_2m,weather_code,pressure_msl,wind_speed_10m&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=auto`;
 
             try {
@@ -653,7 +662,7 @@
                         li.onclick = () => {
                             lastRadioUrl = st.url_resolved; lastRadioName = st.name;
                             localStorage.setItem('last_radio_url', lastRadioUrl); localStorage.setItem('last_radio_name', lastRadioName);
-                            document.getElementById('radio-search').value = st.name;
+                            setInputValue(document.getElementById('radio-search'), st.name);
                             resumeAudioCtx();
                             streamPlayer.src = lastRadioUrl; streamPlayer.play();
                             buildTicker();
