@@ -6,106 +6,45 @@
     <title>Meteostanica</title>
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="mobile-web-app-capable" content="yes">
     <link rel="manifest" href="manifest.json">
     <style>
         :root {
             --bg-color: #0c0d10;
             --clock-color: #f1c40f;
             --out-color: #3498db;
-            --in-color: #2ecc71;
             --card-bg: rgba(255, 255, 255, 0.03);
             --border-color: #232731;
         }
-        body {
-            margin: 0; padding: 15px;
-            background-color: var(--bg-color);
-            color: #ffffff;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            height: 100vh; display: flex; flex-direction: column;
-            box-sizing: border-box; justify-content: space-between;
-            overflow: hidden;
-        }
-
-        /* --- Ovládacie prvky --- */
-        .controls { display: flex; flex-direction: column; gap: 10px; width: 100%; }
-        .input-group { display: flex; flex-direction: column; gap: 4px; }
-        .input-group label { font-size: 0.7rem; color: #64748b; text-transform: uppercase; }
-        input { padding: 12px; background: #1a1d24; border: 1px solid var(--border-color); border-radius: 6px; color: white; width: 100%; box-sizing: border-box; }
-        button { background: var(--out-color); border: none; padding: 12px; border-radius: 6px; color: white; font-weight: bold; cursor: pointer; }
-
-        /* --- Layout --- */
-        .main-layout { display: flex; flex-direction: column; flex-grow: 1; justify-content: center; gap: 15px; }
-        
-        /* --- Hodiny v strede --- */
-        .clock-container { text-align: center; }
-        #time { font-size: 5rem; font-weight: 800; color: var(--clock-color); line-height: 1; }
-        #date { font-size: 1.2rem; color: #8892b0; }
-
-        /* --- Metriky --- */
-        .metrics { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
-        .m-card { background: var(--card-bg); border: 1px solid var(--border-color); padding: 10px; border-radius: 8px; text-align: center; }
-        .m-card span { display: block; font-size: 0.7rem; color: #64748b; }
-        .m-card b { font-size: 1.1rem; }
-
-        /* --- LANDSCAPE (Pre tablety v držiaku) --- */
-        @media (orientation: landscape) {
-            body { flex-direction: row; align-items: center; gap: 20px; }
-            .controls { width: 300px; }
-            .main-layout { flex-grow: 1; height: 100%; justify-content: space-around; }
-            #time { font-size: 8rem; }
-            .metrics { grid-template-columns: 1fr 1fr 1fr; }
-        }
+        body { margin: 0; padding: 20px; background-color: var(--bg-color); color: white; font-family: sans-serif; height: 100vh; display: flex; flex-direction: column; gap: 20px; box-sizing: border-box; }
+        .controls { display: flex; gap: 10px; }
+        button { background: var(--out-color); border: none; padding: 10px; color: white; border-radius: 5px; cursor: pointer; }
+        input { flex-grow: 1; padding: 10px; background: #1a1d24; border: 1px solid var(--border-color); color: white; border-radius: 5px; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; flex-grow: 1; }
+        .card { background: var(--card-bg); border: 1px solid var(--border-color); padding: 20px; border-radius: 10px; }
+        #time { font-size: 4rem; color: var(--clock-color); }
+        @media (orientation: portrait) { .grid { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
-
     <div class="controls">
-        <button onclick="getLocationByGPS()">GPS Poloha</button>
-        <div class="input-group">
-            <label>Mesto</label>
-            <input type="text" id="search-input" placeholder="Zadaj mesto...">
-        </div>
+        <button onclick="getLocation()">GPS</button>
+        <input type="text" id="city" placeholder="Mesto...">
+        <input type="text" id="radio" placeholder="Rádio...">
     </div>
-
-    <div class="main-layout">
-        <div class="clock-container">
-            <div id="time">00:00</div>
-            <div id="date">--.--.----</div>
-        </div>
-        <div class="metrics">
-            <div class="m-card"><span>TEPLOTA</span><b id="out-temp">--</b></div>
-            <div class="m-card"><span>VLHKOSŤ</span><b id="out-hum">--</b></div>
-            <div class="m-card"><span>TLAK</span><b id="pressure">--</b></div>
-        </div>
+    <div class="grid">
+        <div class="card"><div id="time">00:00</div><div id="date">--.--.----</div></div>
+        <div class="card"><h2>Teplota</h2><b id="temp">--°C</b></div>
     </div>
-
+    <audio id="player"></audio>
     <script>
-        function updateClock() {
+        function update() {
             const now = new Date();
             document.getElementById('time').textContent = now.toLocaleTimeString('sk-SK', {hour: '2-digit', minute:'2-digit'});
-            document.getElementById('date').textContent = now.toLocaleDateString('sk-SK', {day: 'numeric', month: 'long'});
+            document.getElementById('date').textContent = now.toLocaleDateString('sk-SK');
         }
-        setInterval(updateClock, 1000);
-        updateClock();
-
-        async function fetchWeather(lat, lon, name) {
-            const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,pressure_msl`;
-            const res = await fetch(url);
-            const data = await res.json();
-            document.getElementById('out-temp').textContent = data.current.temperature_2m + "°C";
-            document.getElementById('out-hum').textContent = data.current.relative_humidity_2m + "%";
-            document.getElementById('pressure').textContent = Math.round(data.current.pressure_msl) + " hPa";
-        }
-
-        function getLocationByGPS() {
-            navigator.geolocation.getCurrentPosition(pos => {
-                fetchWeather(pos.coords.latitude, pos.coords.longitude);
-            });
-        }
-        
-        // Initial load (Bratislava)
-        fetchWeather(48.1482, 17.1067);
+        setInterval(update, 1000);
+        update();
+        function getLocation() { navigator.geolocation.getCurrentPosition(p => console.log(p)); }
     </script>
 </body>
 </html>
