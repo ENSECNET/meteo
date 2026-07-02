@@ -1,0 +1,10 @@
+{
+  "name": "Meteo Panel Pro",
+  "short_name": "MeteoPanel",
+  "start_url": ".",
+  "display": "fullscreen",
+  "orientation": "landscape",
+  "background_color": "#0c0d10",
+  "theme_color": "#0c0d10",
+  "icons": [{ "src": "https://cdn-icons-png.flaticon.com/512/869/869869.png", "sizes": "512x512", "type": "image/png" }]
+}

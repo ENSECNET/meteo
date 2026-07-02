@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meteostanica</title>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="manifest" href="manifest.json">
+    <style>
+        :root {
+            --bg-color: #0c0d10;
+            --clock-color: #f1c40f;
+            --out-color: #3498db;
+            --in-color: #2ecc71;
+            --card-bg: rgba(255, 255, 255, 0.03);
+            --border-color: #232731;
+        }
+        body {
+            margin: 0; padding: 20px;
+            background-color: var(--bg-color);
+            color: #ffffff;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            height: 100vh; display: flex; flex-direction: column;
+            box-sizing: border-box; justify-content: space-between;
+        }
+        /* Top Kontroly */
+        .top-controls {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 15px; gap: 15px; z-index: 100;
+        }
+        .search-container { position: relative; flex-grow: 1; max-width: 400px; }
+        input[type="text"] {
+            width: 100%; padding: 10px 15px; background: #1a1d24; border: 1px solid var(--border-color);
+            border-radius: 6px; color: white; font-size: 1rem; box-sizing: border-box;
+        }
+        .suggestions {
+            position: absolute; top: 100%; left: 0; right: 0; background: #1a1d24;
+            border: 1px solid var(--border-color); border-top: none; border-radius: 0 0 6px 6px;
+            max-height: 200px; overflow-y: auto; list-style: none; margin: 0; padding: 0; z-index: 1000;
+        }
+        .suggestions li { padding: 10px 15px; cursor: pointer; border-bottom: 1px solid #232731; }
+        .suggestions li:hover { background: #232731; }
+        .btn-gps {
+            padding: 10px 15px; background: var(--out-color); border: none; border-radius: 6px;
+            color: white; font-weight: bold; cursor: pointer; font-size: 1rem; white-space: nowrap;
+        }
+        .location-display { font-size: 1.2rem; font-weight: bold; color: #aaa; text-align: right; }
+
+        /* Mriežka */
+        .grid { display: grid; grid-template-columns: 1.3fr 1fr 1fr; gap: 20px; flex-grow: 1; }
+        .card {
+            background: var(--card-bg); border: 1px solid var(--border-color);
+            border-radius: 12px; padding: 25px; display: flex; flex-direction: column;
+            justify-content: center; align-items: center; box-shadow: 0 8px 32px 0 rgba(0,0,0,0.3);
+        }
+        .clock-card { border-color: #3e3b23; }
+        #time { font-size: 6rem; font-weight: 800; color: var(--clock-color); font-family: monospace; margin: 0; }
+        #date { font-size: 1.4rem; color: #8892b0; margin-top: 10px; text-transform: uppercase; letter-spacing: 2px; }
+        
+        .out-card { border-color: rgba(52, 152, 219, 0.2); }
+        .in-card { border-color: rgba(46, 204, 113, 0.2); }
+        .label { font-size: 1.1rem; font-weight: 700; letter-spacing: 1px; margin-bottom: 15px; }
+        .out-card .label { color: var(--out-color); }
+        .in-card .label { color: var(--in-color); }
+        
+        .temp { font-size: 5rem; font-weight: 700; }
+        .humidity { font-size: 1.6rem; color: #8892b0; margin-top: 15px; }
+
+        /* Spodná lišta */
+        .bottom-bar { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 20px; }
+        .sub-card { background: #13161c; border: 1px solid var(--border-color); border-radius: 8px; padding: 15px; text-align: center; }
+        .sub-card span { display: block; color: #64748b; font-size: 0.85rem; font-weight: 600; letter-spacing: 1px; margin-bottom: 5px; }
+        .sub-card b { font-size: 1.3rem; }
+    </style>
+</head>
+<body>
+
+    <div class="top-controls">
+        <button class="btn-gps" onclick="getLocationByGPS()">Použiť GPS 📍</button>
+        <div class="search-container">
+            <input type="text" id="search-input" placeholder="Vyhľadať mesto vo svete..." oninput="searchCity()">
+            <ul id="suggestions" class="suggestions"></ul>
+        </div>
+        <div class="location-display" id="current-location">Načítavam polohu...</div>
+    </div>
+
+    <div class="grid">
+        <div class="card clock-card">
+            <div id="time">00:00</div>
+            <div id="date">--.--.----</div>
+        </div>
+        <div class="card out-card">
+            <div class="label">VONKU / OUT</div>
+            <div class="temp"><span id="out-temp">--</span>°C</div>
+            <div class="humidity">Vlhkosť: <span id="out-hum">--</span>%</div>
+        </div>
+        <div class="card in-card">
+            <div class="label">VNÚTRI / IN</div>
+            <div class="temp">23.2°C</div>
+            <div class="humidity">Vlhkosť: 42%</div>
+        </div>
+    </div>
+
+    <div class="bottom-bar">
+        <div class="sub-card"><span>TLAK VZDUCHU</span><b id="pressure">---- hPa</b></div>
+        <div class="sub-card"><span>RÝCHLOSŤ VETRA</span><b id="wind">-- km/h</b></div>
+        <div class="sub-card"><span>POCITOVÁ TEPLOTA</span><b id="feels-like">-- °C</b></div>
+    </div>
+
+    <script>
+        let currentLoc = JSON.parse(localStorage.getItem('selected_location')) || { name: "Bratislava", lat: 48.1482, lon: 17.1067 };
+
+        function updateClock() {
+            const now = new Date();
+            document.getElementById('time').textContent = now.toLocaleTimeString('sk-SK', {hour: '2-digit', minute:'2-digit'});
+            document.getElementById('date').textContent = now.toLocaleDateString('sk-SK', {weekday: 'short', day: 'numeric', month: 'numeric'});
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        async function fetchWeather() {
+            document.getElementById('current-location').textContent = currentLoc.name;
+            const url = `https://api.open-meteo.com/v1/forecast?latitude=${currentLoc.lat}&longitude=${currentLoc.lon}&current=temperature_2m,relative_humidity_2m,apparent_temperature,pressure_msl,wind_speed_10m&timezone=auto`;
+            try {
+                const res = await fetch(url);
+                const data = await res.json();
+                document.getElementById('out-temp').textContent = data.current.temperature_2m.toFixed(1);
+                document.getElementById('out-hum').textContent = data.current.relative_humidity_2m;
+                document.getElementById('pressure').textContent = `${Math.round(data.current.pressure_msl)} hPa`;
+                document.getElementById('wind').textContent = `${data.current.wind_speed_10m.toFixed(1)} km/h`;
+                document.getElementById('feels-like').textContent = `${data.current.apparent_temperature.toFixed(1)} °C`;
+            } catch (e) { console.error(e); }
+        }
+
+        async function searchCity() {
+            const query = document.getElementById('search-input').value;
+            const sugList = document.getElementById('suggestions');
+            if(query.length < 3) { sugList.innerHTML = ''; return; }
+
+            try {
+                const res = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query)}&count=5&language=sk`);
+                const data = await res.json();
+                sugList.innerHTML = '';
+                if(data.results) {
+                    data.results.forEach(city => {
+                        const li = document.createElement('li');
+                        const country = city.country ? `, ${city.country}` : '';
+                        li.textContent = `${city.name}${country} (${city.admin1 || ''})`;
+                        li.onclick = () => {
+                            currentLoc = { name: city.name, lat: city.latitude, lon: city.longitude };
+                            localStorage.setItem('selected_location', JSON.stringify(currentLoc));
+                            fetchWeather();
+                            sugList.innerHTML = '';
+                            document.getElementById('search-input').value = '';
+                        };
+                        sugList.appendChild(li);
+                    });
+                }
+            } catch(e) { console.error(e); }
+        }
+
+        function getLocationByGPS() {
+            if (navigator.geolocation) {
+                document.getElementById('current-location').textContent = "Hľadám GPS...";
+                navigator.geolocation.getCurrentPosition(async (position) => {
+                    currentLoc = { name: "📍 Moja poloha (GPS)", lat: position.coords.latitude, lon: position.coords.longitude };
+                    localStorage.setItem('selected_location', JSON.stringify(currentLoc));
+                    fetchWeather();
+                }, () => { alert("Nepodarilo sa získať GPS polohu."); fetchWeather(); });
+            }
+        }
+
+        setInterval(fetchWeather, 600000);
+        fetchWeather();
+    </script>
+</body>
+</html>
