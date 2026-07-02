@@ -234,11 +234,8 @@
 
             .search-container input { padding: 14px 15px; font-size: 1.05rem; }
 
-            .main-layout { grid-template-rows: 28dvh 8dvh 8dvh 1fr; }
+            .main-layout { grid-template-rows: auto auto auto minmax(160px, 1fr); }
 
-            /* hodiny/ekvalizér zmenšené tak, aby sa isto zmestili do svojho 28dvh rozpočtu —
-               vďaka pevnému dvh rozpočtu na riadkoch vyššie má predpoveď vždy garantovaný,
-               nie len "zvyšný" priestor */
             .hero-block { justify-content: center; }
             .me-time { font-size: clamp(2.2rem, 8dvh, 4.4rem); letter-spacing: -3px; }
             .me-seconds { font-size: 0.3em; }
@@ -563,7 +560,7 @@
                     `;
                     weekBar.appendChild(card);
                 }
-            } catch(e) {}
+            } catch(e) { console.error('fetchWeather zlyhal:', e); }
         }
 
         function playSynthTone(index) {
