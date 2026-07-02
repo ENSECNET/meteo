@@ -9,7 +9,7 @@
     <link rel="manifest" href="manifest.json">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap');
-        
+
         :root {
             --bg-color: #030407;
             --me-orange: #ff5500;
@@ -27,8 +27,7 @@
             background-color: var(--bg-color); color: var(--me-text);
             font-family: 'Share Tech Mono', monospace;
             /* 100vh v mobilnom "web" tabe zarátava aj adresný riadok, preto sa spodok orežal.
-               100dvh (dynamic viewport height) sa prispôsobí skutočnému viditeľnému priestoru
-               rovnako vo web prehliadači aj v nainštalovanej fullscreen "apke". */
+               100dvh sa prispôsobí skutočnému viditeľnému priestoru rovnako vo web tabe aj v apke. */
             height: 100vh; height: 100dvh;
             display: flex; flex-direction: column;
             box-sizing: border-box; overflow: hidden;
@@ -45,28 +44,68 @@
         #ss-clock { font-family: 'Orbitron', sans-serif; font-size: 5rem; color: rgba(255, 85, 0, 0.6); font-weight: 700; text-align: center; }
         #ss-info { font-size: 1rem; color: rgba(0, 210, 255, 0.4); margin-top: 10px; text-transform: uppercase; }
 
-        /* HEADER BAR */
-        .header-bar {
-            display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end;
-            padding: 8px 12px; background: rgba(26, 31, 41, 0.6);
-            border: 1px solid var(--border-color); border-radius: 6px; gap: 10px; margin-bottom: 8px;
-            flex-shrink: 0;
+        /* UTILITY BAR: GPS + TICKER (rádio + burza) + DIM */
+        .util-bar { display: flex; align-items: stretch; gap: 8px; margin-bottom: 8px; flex-shrink: 0; }
+        .icon-btn {
+            background: rgba(0,0,0,0.5); border: 1px solid var(--border-color); color: var(--me-blue);
+            font-size: 1.1rem; cursor: pointer; border-radius: 6px; padding: 0 14px; flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .icon-btn:active { background: rgba(0,210,255,0.15); }
+
+        .ticker-bar {
+            flex: 1; min-width: 0; overflow: hidden; position: relative;
+            background: rgba(26, 31, 41, 0.6); border: 1px solid var(--border-color); border-left: 3px solid var(--me-blue);
+            border-radius: 6px; display: flex; align-items: center;
+        }
+        .ticker-track {
+            display: inline-block; white-space: nowrap; padding-left: 100%;
+            font-size: 0.8rem; animation: ticker-scroll 32s linear infinite;
+        }
+        @keyframes ticker-scroll { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+        .tk-radio { color: var(--me-blue); font-weight: bold; }
+        .tk-name { color: #8892b0; }
+        .tk-up { color: #39d98a; }
+        .tk-down { color: #ff6b6b; }
+
+        /* HERO: HODINY + EKVALIZÉR + MUTE/VOLUME */
+        .hero-block {
+            grid-area: hero;
+            display: flex; flex-direction: column; align-items: center; gap: 14px;
+            box-sizing: border-box; width: 100%; min-height: 0;
+        }
+        .clock-block { text-align: center; cursor: pointer; flex-shrink: 0; }
+        .me-time { font-family: 'Orbitron', sans-serif; font-weight: 900; color: #fff; line-height: 1; display: block; }
+        .me-seconds { color: var(--me-orange); font-weight: 400; vertical-align: baseline; }
+        .me-zone-info { font-size: 0.8rem; color: #64748b; text-transform: uppercase; letter-spacing: 2px; margin-top: 5px; }
+        .hint-click { font-size: 0.65rem; color: #555; text-transform: uppercase; margin-top: 5px; }
+
+        .eq-row { display: flex; align-items: center; gap: 10px; width: 100%; min-width: 0; }
+        #eq-canvas { flex: 1; min-width: 0; width: 100%; height: 80px; display: block; }
+        .vol-box {
+            display: flex; flex-direction: column; align-items: center; gap: 8px; flex-shrink: 0;
+            background: rgba(0,0,0,0.4); border: 1px solid var(--border-color); border-radius: 6px; padding: 10px 12px;
         }
         .btn-me {
-            background: rgba(0,0,0,0.5); border: 1px solid var(--me-orange);
-            color: var(--me-orange); font-family: 'Orbitron', sans-serif; font-size: 0.8rem; font-weight: bold; cursor: pointer; text-transform: uppercase;
-            padding: 8px 15px; border-radius: 4px; transition: 0.2s;
+            background: rgba(0,0,0,0.5); border: 1px solid var(--me-blue);
+            color: var(--me-blue); font-family: 'Orbitron', sans-serif; font-size: 0.65rem; font-weight: bold; cursor: pointer; text-transform: uppercase;
+            padding: 6px 10px; border-radius: 4px; transition: 0.2s; width: 100%;
         }
-        .btn-me:hover { background: var(--me-orange); color: #000; }
-        .btn-gps { flex-shrink: 0; height: 42px; }
+        .btn-me.is-muted { border-color: var(--me-orange); color: var(--me-orange); }
+        .vol-slider-vert { writing-mode: vertical-lr; direction: rtl; width: 6px; height: 60px; accent-color: var(--me-blue); }
 
-        .search-group { display: flex; flex-direction: column; flex: 1; min-width: 150px; gap: 5px; }
-        .search-group label { font-size: 0.75rem; color: var(--me-blue); font-weight: bold; text-transform: uppercase; letter-spacing: 1px; }
+        /* SEARCH: MESTO / RÁDIO */
+        .search-group { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+        .search-group.mesto { grid-area: mesto; }
+        .search-group.radio { grid-area: radio; }
+        .search-group label { font-size: 0.7rem; color: var(--me-blue); font-weight: bold; text-transform: uppercase; letter-spacing: 1px; display: flex; align-items: center; gap: 6px; }
+        .search-group.radio label { color: var(--me-orange); }
         .search-container { position: relative; width: 100%; }
         .search-container input {
             width: 100%; padding: 10px 12px; background: #000; border: 1px solid var(--me-blue);
-            border-radius: 4px; color: #fff; font-family: 'Share Tech Mono', monospace; font-size: 0.95rem; box-sizing: border-box;
+            border-radius: 4px; color: #fff; font-family: 'Share Tech Mono', monospace; font-size: 0.9rem; box-sizing: border-box;
         }
+        .search-group.radio .search-container input { border-color: var(--me-orange); }
         .sug-box {
             position: absolute; top: 100%; left: 0; right: 0; background: #090d14;
             border: 1px solid var(--me-blue); border-top: none; list-style: none; margin: 0; padding: 0; max-height: 150px; overflow-y: auto; z-index: 999;
@@ -74,16 +113,23 @@
         }
         .sug-box li { padding: 10px 12px; cursor: pointer; border-bottom: 1px solid #141b29; font-size: 0.85rem; }
         .sug-box li:hover { background: var(--me-orange); color: #000; }
-        
-        .audio-controls { display: flex; align-items: center; gap: 8px; background: rgba(0,0,0,0.4); padding: 6px 12px; border-radius: 4px; height: 42px; box-sizing: border-box; }
-        .vol-slider { -webkit-appearance: none; width: 60px; height: 4px; background: #333; outline: none; }
-        .vol-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 12px; height: 12px; background: var(--me-blue); cursor: pointer; border-radius: 50%; }
+        .wakelock-status { font-size: 0.6rem; color: #4ade80; }
 
-        /* MAIN LAYOUT */
-        .main-layout { display: flex; flex-direction: column; justify-content: space-between; flex-grow: 1; gap: 10px; min-height: 0; }
+        /* MAIN LAYOUT — CSS grid s pomenovanými oblasťami, aby sme vedeli poprehadzovať
+           poradie medzi na stojaka a na ležato bez duplikovania HTML. */
+        .main-layout {
+            flex-grow: 1; min-height: 0; display: grid; gap: 10px;
+            grid-template-columns: repeat(6, 1fr);
+            grid-template-rows: auto auto 1fr auto;
+            grid-template-areas:
+                "hero hero hero hero hero hero"
+                "mesto mesto mesto radio radio radio"
+                "forecast forecast forecast forecast forecast forecast"
+                "temp temp hum hum press press";
+        }
 
-        /* 1. WEEK FORECAST */
-        .week-forecast { display: grid; gap: 6px; min-height: 0; }
+        /* WEEK FORECAST */
+        .week-forecast { grid-area: forecast; display: grid; gap: 6px; min-height: 0; }
         .day-card {
             background: rgba(10, 14, 23, 0.8); border: 1px solid rgba(0, 212, 255, 0.1);
             box-sizing: border-box; display: flex; align-items: center; justify-content: space-between; border-radius: 4px;
@@ -99,29 +145,19 @@
         .day-rain { font-size: 0.75rem; color: #aaa; text-transform: uppercase; }
         .day-rain.yes { color: #00d2ff; font-weight: bold; }
 
-        /* 2. CLOCK */
-        .middle-clock-container { display: flex; justify-content: center; align-items: center; width: 100%; box-sizing: border-box; }
-        .me-clock-box {
-            text-align: center; padding: 15px; background: rgba(0, 0, 0, 0.4); width: 100%; box-sizing: border-box;
-            border-left: 4px solid var(--me-orange); border-right: 4px solid var(--me-blue);
-            cursor: pointer; border-radius: 8px;
-        }
-        .me-time { font-family: 'Orbitron', sans-serif; font-weight: 900; color: #fff; line-height: 1; display: block; }
-        .me-seconds { color: var(--me-orange); font-weight: 400; vertical-align: baseline; }
-        .me-zone-info { font-size: 0.8rem; color: #64748b; text-transform: uppercase; letter-spacing: 2px; margin-top: 5px; }
-        .hint-click { font-size: 0.65rem; color: #555; text-transform: uppercase; margin-top: 5px; }
-
-        /* 3. METRICS */
-        .bottom-metrics { display: grid; gap: 8px; }
+        /* METRICS */
         .metric-card {
             background: rgba(10, 14, 23, 0.9); border: 1px solid var(--border-color);
             padding: 12px; display: flex; flex-direction: column; justify-content: center; box-sizing: border-box; border-radius: 6px;
         }
+        .metric-card.temp { grid-area: temp; border-left: 4px solid var(--me-blue); }
+        .metric-card.hum { grid-area: hum; }
+        .metric-card.press { grid-area: press; }
         .metric-label { font-size: 0.75rem; color: #556c85; font-weight: bold; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 2px;}
-        .metric-card.temp-main { border-left: 4px solid var(--me-blue); }
         .metric-value { font-family: 'Orbitron', sans-serif; font-weight: 700; color: #fff; line-height: 1.1; }
         .metric-sub { font-size: 0.8rem; color: #8892b0; margin-top: 2px;}
         .metric-sub b { color: var(--me-orange); }
+        .unit { font-size: 0.45em; vertical-align: super; font-weight: normal; color: #64748b; }
 
         /* ALARM OVERLAY */
         .alarm-overlay {
@@ -139,71 +175,63 @@
         .alarm-config-row { display: flex; gap: 8px; margin-top: 8px; align-items: center; font-size: 0.85rem; }
         .alarm-sound-select { background: #000; color: #fff; border: 1px solid #445; padding: 5px; flex: 1; font-size: 0.85rem; }
 
-        .unit { font-size: 0.45em; vertical-align: super; font-weight: normal; color: #64748b; }
-        .wakelock-status { font-size: 0.7rem; color: #4ade80; text-transform: uppercase; float: right; }
-
         /* =========================================
            📱 MEDIA QUERIES (LANDSCAPE VS PORTRAIT)
            ========================================= */
-        
+
         /* 📐 LANDSCAPE (NA LEŽATO)
-           main-layout je grid s riadkami auto/1fr/auto, takže predpoveď a metriky
-           zaberú presne toľko miesta koľko potrebujú a hodiny vyplnia zvyšok.
-           Všetky písma sú clamp()-nuté na dvh, takže sa CELÁ stránka vždy zmestí
-           na výšku obrazovky (bez orezania) — na malom tablete rovnako ako na 43" monitore,
-           vo web tabe aj v nainštalovanej apke. */
+           hero je bordovaná karta s hodinami+ekvalizérom+mute vedľa seba,
+           predpoveď na týždeň sa skrýva (nezmestí sa vedľa toho všetkého),
+           dole je jeden riadok: teplota/vlhkosť/tlak + mesto/rádio. */
         @media (orientation: landscape) {
-            .header-bar { padding: clamp(4px, 1.2dvh, 8px) 12px; gap: 8px; }
-            .btn-gps, .audio-controls { height: clamp(30px, 6dvh, 42px); }
-            .search-container input { padding: clamp(6px, 1.4dvh, 10px) 12px; font-size: clamp(0.8rem, 1.8dvh, 0.95rem); }
+            .icon-btn { font-size: 1rem; padding: 0 10px; }
+            .ticker-track { font-size: clamp(0.65rem, 1.6dvh, 0.8rem); }
 
-            .main-layout { display: grid; grid-template-rows: auto 1fr auto; gap: clamp(6px, 1.5dvh, 14px); }
+            .main-layout {
+                grid-template-columns: repeat(5, 1fr);
+                grid-template-rows: 1fr auto;
+                grid-template-areas:
+                    "hero hero hero hero hero"
+                    "temp hum press mesto radio";
+            }
+            .week-forecast { display: none; }
 
-            .week-forecast { grid-template-columns: repeat(7, 1fr); }
-            .day-card { flex-direction: column; justify-content: space-between; padding: clamp(4px, 1dvh, 10px) 4px; height: 100%; text-align: center; }
-            .day-name { font-size: clamp(0.65rem, 1.7dvh, 0.9rem); }
-            .day-date { font-size: clamp(0.6rem, 1.4dvh, 0.75rem); }
-            .day-icon { font-size: clamp(1rem, 2.6dvh, 1.7rem); }
-            .day-temps { font-size: clamp(0.75rem, 1.8dvh, 1rem); }
-            .day-rain { font-size: clamp(0.6rem, 1.4dvh, 0.75rem); }
-
-            .me-clock-box { padding: clamp(8px, 2dvh, 15px); }
-            .me-time { font-size: clamp(2.6rem, 11dvh, 6rem); letter-spacing: -2px; }
+            .hero-block {
+                flex-direction: row; justify-content: center;
+                background: rgba(10, 14, 23, 0.6); border: 1px solid var(--border-color); border-radius: 10px;
+                padding: clamp(8px, 2dvh, 16px) clamp(12px, 3dvh, 22px);
+            }
+            .clock-block { flex: 0 0 auto; }
+            .me-time { font-size: clamp(2.4rem, 10dvh, 5.5rem); letter-spacing: -2px; }
             .me-seconds { font-size: 0.35em; }
-            .me-zone-info { font-size: clamp(0.6rem, 1.6dvh, 0.8rem); }
-            .hint-click { font-size: clamp(0.55rem, 1.2dvh, 0.65rem); }
+            .eq-row { flex: 1; }
+            #eq-canvas { height: clamp(60px, 14dvh, 100px); }
+            .vol-box { padding: clamp(6px, 1.4dvh, 10px) 10px; }
+            .vol-slider-vert { height: clamp(40px, 9dvh, 70px); }
 
-            .bottom-metrics { grid-template-columns: 1.2fr 1fr 1fr; }
             .metric-card { padding: clamp(6px, 1.4dvh, 12px); }
             .metric-label { font-size: clamp(0.6rem, 1.4dvh, 0.75rem); }
-            .metric-value { font-size: clamp(1.6rem, 5dvh, 3rem); }
+            .metric-value { font-size: clamp(1.4rem, 4.5dvh, 2.6rem); }
             .metric-sub { font-size: clamp(0.65rem, 1.5dvh, 0.8rem); }
+            .search-group label { font-size: clamp(0.6rem, 1.3dvh, 0.7rem); }
+            .search-container input { padding: clamp(6px, 1.4dvh, 10px) 10px; font-size: clamp(0.75rem, 1.7dvh, 0.9rem); }
 
             .alarm-grid-list { grid-template-columns: repeat(2, 1fr); }
         }
 
-        /* 📱 PORTRAIT (NA STOJATO) */
+        /* 📱 PORTRAIT (NA STOJATO)
+           hodiny samostatne hore, pod nimi ekvalizér+mute na celú šírku,
+           potom mesto/rádio, plná 7-dňová predpoveď so zvýrazneným dneškom,
+           úplne dole teplota/vlhkosť/tlak. */
         @media (orientation: portrait) {
-            body { padding: 12px; gap: 15px; }
-            
-            /* HEADER - Full width elements stacked */
-            .header-bar { flex-direction: column; align-items: stretch; padding: 15px; gap: 15px; border-radius: 8px; }
-            .btn-gps { padding: 16px; font-size: 1.15rem; width: 100%; height: auto; }
-            .search-group { width: 100%; }
-            .search-container input { padding: 14px 15px; font-size: 1.1rem; }
-            .audio-controls { justify-content: space-between; padding: 12px; height: auto; }
-            .vol-slider { width: 100px; }
-            
-            /* MAIN LAYOUT REORDER */
-            .main-layout { justify-content: center; gap: 10px; }
-            
-            /* 1. CLOCK HUGE */
-            .middle-clock-container { order: 1; margin: 20px 0; flex-grow: 1; }
-            .me-time { font-size: 18vw; letter-spacing: -3px; } 
-            .me-seconds { font-size: 6vw; }
-            
-            /* 2. FORECAST SLIM ROWS */
-            .week-forecast { order: 2; grid-template-columns: 1fr; gap: 4px; }
+            body { padding: 12px; gap: 12px; }
+
+            .search-container input { padding: 14px 15px; font-size: 1.05rem; }
+
+            .me-time { font-size: 16vw; letter-spacing: -3px; }
+            .me-seconds { font-size: 5.5vw; }
+
+            .week-forecast { grid-template-columns: 1fr; gap: 4px; }
             .day-card { padding: 8px 12px; border-radius: 6px; }
             .day-name { font-size: 0.85rem; min-width: 45px; }
             .day-date { font-size: 0.8rem; min-width: 45px; }
@@ -211,13 +239,11 @@
             .day-temps { font-size: 0.9rem; min-width: 60px; text-align: right; }
             .day-rain { font-size: 0.8rem; min-width: 80px; text-align: right; }
 
-            /* 3. METRICS AT BOTTOM */
-            .bottom-metrics { order: 3; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 10px; } 
             .metric-card { padding: 10px 5px; text-align: center; align-items: center; border-radius: 6px; }
             .metric-label { font-size: 0.65rem; white-space: nowrap; }
             .metric-value { font-size: 1.6rem; margin-top: 4px; }
-            .metric-sub { display: none; } /* Hide extra text to keep it clean */
-            
+            .metric-sub { display: none; }
+
             .alarm-grid-list { grid-template-columns: 1fr; }
         }
     </style>
@@ -230,77 +256,83 @@
         <div id="ss-info">Prebudiť N7 stanicu</div>
     </div>
 
-    <!-- CONTROL HEADER -->
-    <div class="header-bar">
-        <button class="btn-me btn-gps" onclick="getLocationByGPS()">GPS 📍 Zamerať Polohu</button>
-        
-        <div class="search-group">
-            <label>Mesto pre počasie <span id="wl-indicator" class="wakelock-status">[WAKE ON]</span></label>
+    <!-- UTILITY BAR: GPS / TICKER (rádio naživo + burza) / DIM -->
+    <div class="util-bar">
+        <button class="icon-btn" onclick="getLocationByGPS()" title="Zamerať polohu">📍</button>
+        <div class="ticker-bar">
+            <div class="ticker-track" id="ticker-track"></div>
+        </div>
+        <button class="icon-btn" onclick="enableScreensaver()" title="Stlmiť obrazovku">🌙</button>
+    </div>
+
+    <!-- DYNAMIC CORE LAYOUT -->
+    <div class="main-layout">
+
+        <!-- HERO: HODINY + EKVALIZÉR + MUTE/VOLUME -->
+        <div class="hero-block">
+            <div class="clock-block" onclick="openAlarmSettings()">
+                <div class="me-time"><span id="time-hm">00:00</span><span class="me-seconds" id="time-s">00</span></div>
+                <div class="me-zone-info" id="date-string">PONDELOK, 1. JANUÁR</div>
+                <div class="hint-click">➔ Nastavenie budíkov & automatizácie</div>
+            </div>
+            <div class="eq-row">
+                <canvas id="eq-canvas"></canvas>
+                <div class="vol-box">
+                    <button class="btn-me" id="btn-mute" onclick="toggleMute()">Mute</button>
+                    <input type="range" id="vol-control" class="vol-slider-vert" min="0" max="1" step="0.05" value="0.7" oninput="setVolume(this.value)">
+                </div>
+            </div>
+        </div>
+
+        <!-- MESTO -->
+        <div class="search-group mesto">
+            <label>Mesto <span id="wl-indicator" class="wakelock-status">●</span></label>
             <div class="search-container">
                 <input type="text" id="city-search" placeholder="Hľadať mesto..." oninput="searchCity()" onfocus="this.select()">
                 <ul id="city-sug" class="sug-box"></ul>
             </div>
         </div>
-        
-        <div class="search-group">
-            <label>Internetové Rádio</label>
+
+        <!-- RÁDIO -->
+        <div class="search-group radio">
+            <label>Rádio</label>
             <div class="search-container">
                 <input type="text" id="radio-search" placeholder="Hľadať rádio..." oninput="searchRadio()" onfocus="this.select()">
                 <ul id="radio-sug" class="sug-box"></ul>
             </div>
         </div>
-        
-        <div class="audio-controls">
-            <input type="range" id="vol-control" class="vol-slider" min="0" max="1" step="0.05" value="0.7" oninput="setVolume(this.value)">
-            <button class="btn-me" style="padding:6px 12px; border-color:var(--me-blue); color:var(--me-blue);" id="btn-mute" onclick="toggleMute()">Mute</button>
-            <button class="btn-me" style="padding:6px 12px; border-color:#4ade80; color:#4ade80;" onclick="enableScreensaver()">Dim 🌙</button>
-        </div>
-    </div>
 
-    <!-- DYNAMIC CORE LAYOUT -->
-    <div class="main-layout">
-        <!-- 1. WEEK FORECAST -->
+        <!-- TÝŽDEŇ (len na stojato) -->
         <div class="week-forecast" id="week-bar"></div>
 
-        <!-- 2. MIDDLE MASS EFFECT CLOCK -->
-        <div class="middle-clock-container">
-            <div class="me-clock-box" onclick="openAlarmSettings()">
-                <div class="me-time"><span id="time-hm">00:00</span><span class="me-seconds" id="time-s">00</span></div>
-                <div class="me-zone-info" id="date-string">PONDELOK, 1. JANUÁR</div>
-                <div class="hint-click">➔ Nastavenie budíkov & automatizácie</div>
-            </div>
+        <!-- METRIKY -->
+        <div class="metric-card temp">
+            <div class="metric-label">Teplota</div>
+            <div class="metric-value"><span id="curr-temp">--.-</span><span class="unit">°C</span></div>
+            <div class="metric-sub">Max: <b id="curr-hi">--°C</b></div>
         </div>
-
-        <!-- 3. CURRENT METRICS -->
-        <div class="bottom-metrics">
-            <div class="metric-card temp-main">
-                <div class="metric-label">Teplota</div>
-                <div class="metric-value"><span id="curr-temp">--.-</span><span class="unit">°C</span></div>
-                <div class="metric-sub">Max: <b id="curr-hi">--°C</b></div>
-            </div>
-            <div class="metric-card">
-                <div class="metric-label">Vlhkosť</div>
-                <div class="metric-value"><span id="curr-hum">--</span><span class="unit">%</span></div>
-                <div class="metric-sub">Vietor: <b id="curr-wind">-- km/h</b></div>
-            </div>
-            <div class="metric-card">
-                <div class="metric-label">Tlak</div>
-                <div class="metric-value"><span id="curr-press">----</span><span class="unit">hPa</span></div>
-                <div class="metric-sub">N7 Station</div>
-            </div>
+        <div class="metric-card hum">
+            <div class="metric-label">Vlhkosť</div>
+            <div class="metric-value"><span id="curr-hum">--</span><span class="unit">%</span></div>
+            <div class="metric-sub">Vietor: <b id="curr-wind">-- km/h</b></div>
+        </div>
+        <div class="metric-card press">
+            <div class="metric-label">Tlak</div>
+            <div class="metric-value"><span id="curr-press">----</span><span class="unit">hPa</span></div>
+            <div class="metric-sub">N7 Station</div>
         </div>
     </div>
 
-    <!-- 5. ALARM OVERLAY PANEL -->
+    <!-- ALARM OVERLAY PANEL -->
     <div class="alarm-overlay" id="alarm-panel">
         <div class="alarm-header">
             <div class="alarm-title">Konfigurácia Budení & Automatizácie</div>
-            <button class="btn-me" onclick="closeAlarmSettings()">Uložiť & Zavrieť X</button>
+            <button class="btn-me" style="width:auto; padding:8px 15px; font-size:0.8rem;" onclick="closeAlarmSettings()">Uložiť & Zavrieť X</button>
         </div>
         <div class="alarm-grid-list" id="alarm-list-container"></div>
     </div>
 
-    <audio id="stream-player" preload="none"></audio>
+    <audio id="stream-player" preload="none" crossorigin="anonymous"></audio>
 
     <script>
         let currentLoc = JSON.parse(localStorage.getItem('selected_location')) || { name: "Bratislava", lat: 48.1482, lon: 17.1067 };
@@ -328,11 +360,123 @@
         document.getElementById('radio-search').value = lastRadioName;
         streamPlayer.volume = parseFloat(document.getElementById('vol-control').value);
 
+        /* ========== TICKER (rádio naživo + burza) ==========
+           TODO: nahradiť dummy hodnoty fetchom z Cloudflare Workera.
+           - "teraz hrá" potrebuje ICY metadata zo streamu (Worker s Icy-MetaData:1 hlavičkou)
+           - burzové indexy potrebujú voľné API bez CORS (Worker ako proxy + cache ~60s) */
+        function buildTicker() {
+            const stocks = [
+                { n: 'S&P 500', v: '5 621', c: '+0.42%', up: true },
+                { n: 'NASDAQ', v: '17 890', c: '+0.61%', up: true },
+                { n: 'DOW JONES', v: '39 120', c: '-0.12%', up: false },
+                { n: 'DAX', v: '18 340', c: '+0.28%', up: true },
+                { n: 'NIKKEI 225', v: '38 900', c: '-0.35%', up: false }
+            ];
+            let seg = `<span class="tk-radio">📻 ${lastRadioName}</span>&nbsp;&nbsp;•&nbsp;&nbsp;`;
+            stocks.forEach(s => {
+                seg += `<span class="tk-name">${s.n}</span> <span class="${s.up ? 'tk-up' : 'tk-down'}">${s.up ? '▲' : '▼'} ${s.v} ${s.c}</span>&nbsp;&nbsp;•&nbsp;&nbsp;`;
+            });
+            document.getElementById('ticker-track').innerHTML = seg + seg;
+        }
+        buildTicker();
+
+        /* ========== WEB AUDIO — reaktívny ekvalizér ==========
+           Ak stream nepošle CORS hlavičky (bežné pri mnohých net rádiách),
+           analyser dáta ostanú "ploché" a ekvalizér automaticky prejde
+           do idle "tep srdca" animácie namiesto reaktívnych stĺpcov. */
+        let audioCtx, analyser, freqData, audioGraphReady = false;
+        function initAudioGraph() {
+            if (audioGraphReady) return;
+            try {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const source = audioCtx.createMediaElementSource(streamPlayer);
+                analyser = audioCtx.createAnalyser();
+                analyser.fftSize = 64;
+                freqData = new Uint8Array(analyser.frequencyBinCount);
+                source.connect(analyser);
+                analyser.connect(audioCtx.destination);
+                audioGraphReady = true;
+            } catch(e) { /* CORS obmedzenie streamu — necháme idle režim */ }
+        }
+        document.addEventListener('click', initAudioGraph, { once: true });
+        function resumeAudioCtx() { if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume(); }
+
+        const EQ_BARS = 18, EQ_SEG = 8;
+        let eqLevels = new Array(EQ_BARS).fill(0.12);
+        let eqTargets = new Array(EQ_BARS).fill(0.12);
+        let eqDust = [];
+        function setupDust(w, h) {
+            eqDust = [];
+            for (let i = 0; i < 26; i++) eqDust.push({ x: Math.random()*w, y: Math.random()*h, r: Math.random()*1.4+0.5, s: Math.random()*0.5+0.15, o: Math.random()*10 });
+        }
+        let eqLastW = 0, eqLastH = 0;
+        function drawEqualizer() {
+            const canvas = document.getElementById('eq-canvas');
+            requestAnimationFrame(drawEqualizer);
+            if (!canvas) return;
+            const dpr = window.devicePixelRatio || 1;
+            const rect = canvas.getBoundingClientRect();
+            const targetW = Math.max(1, Math.round(rect.width * dpr));
+            const targetH = Math.max(1, Math.round(rect.height * dpr));
+            if (canvas.width !== targetW || canvas.height !== targetH) {
+                canvas.width = targetW; canvas.height = targetH;
+                setupDust(targetW, targetH);
+            }
+            const ctx = canvas.getContext('2d');
+            const W = canvas.width, H = canvas.height;
+            if (W < 4 || H < 4) return;
+            ctx.clearRect(0, 0, W, H);
+
+            const playing = !streamPlayer.paused;
+            let reactive = false;
+            if (playing && analyser) {
+                analyser.getByteFrequencyData(freqData);
+                let sum = 0; for (let i = 0; i < freqData.length; i++) sum += freqData[i];
+                if (sum / freqData.length > 4) reactive = true;
+            }
+
+            if (reactive) {
+                const step = Math.max(1, Math.floor(freqData.length / EQ_BARS));
+                for (let i = 0; i < EQ_BARS; i++) eqTargets[i] = Math.max(0.05, (freqData[i*step] || 0) / 255);
+            } else {
+                const t = performance.now() / 1000;
+                for (let i = 0; i < EQ_BARS; i++) {
+                    const phase = (i / EQ_BARS) * Math.PI * 2;
+                    eqTargets[i] = 0.1 + 0.1 * Math.max(0, Math.sin(t * 1.4 + phase * 3));
+                }
+            }
+
+            const gap = W * 0.012;
+            const barW = (W - gap * (EQ_BARS - 1)) / EQ_BARS;
+            const segH = (H - 4) / EQ_SEG;
+            for (let i = 0; i < EQ_BARS; i++) {
+                eqLevels[i] += (eqTargets[i] - eqLevels[i]) * 0.18;
+                const activeSegs = Math.round(eqLevels[i] * EQ_SEG);
+                const x = i * (barW + gap);
+                for (let s = 0; s < EQ_SEG; s++) {
+                    const y = H - (s + 1) * segH + 1;
+                    if (s < activeSegs) {
+                        ctx.fillStyle = (s / EQ_SEG > 0.75) ? 'rgba(180,245,255,0.95)' : 'rgba(0,190,230,0.85)';
+                        ctx.shadowColor = 'rgba(0,210,255,0.85)'; ctx.shadowBlur = 6 * dpr;
+                    } else {
+                        ctx.fillStyle = 'rgba(0,210,255,0.06)'; ctx.shadowBlur = 0;
+                    }
+                    ctx.fillRect(x, y, barW, Math.max(1, segH - 2));
+                }
+                ctx.shadowBlur = 0;
+            }
+            eqDust.forEach(d => {
+                d.y -= d.s; if (d.y < 0) { d.y = H; d.x = Math.random() * W; }
+                ctx.fillStyle = 'rgba(150,235,255,' + (0.12 + 0.12 * Math.sin(d.o + performance.now()/700)) + ')';
+                ctx.fillRect(d.x, d.y, d.r * dpr, d.r * dpr);
+            });
+        }
+        drawEqualizer();
+
         async function requestWakeLock() {
             try {
                 if ('wakeLock' in navigator) {
                     wakeLock = await navigator.wakeLock.request('screen');
-                    document.getElementById('wl-indicator').textContent = "[WAKE ON]";
                     document.getElementById('wl-indicator').style.color = "#4ade80";
                 }
             } catch (err) {}
@@ -342,7 +486,6 @@
         });
         document.addEventListener('click', () => { if(!wakeLock) requestWakeLock(); }, { once: true });
 
-        // Close dropdowns on outside click
         document.addEventListener('click', (e) => {
             if(!e.target.closest('#city-search') && !e.target.closest('#city-sug')) document.getElementById('city-sug').innerHTML = '';
             if(!e.target.closest('#radio-search') && !e.target.closest('#radio-sug')) document.getElementById('radio-sug').innerHTML = '';
@@ -365,7 +508,7 @@
             document.getElementById('time-hm').textContent = hmStr;
             document.getElementById('time-s').textContent = now.toLocaleTimeString('sk-SK', {second: '2-digit'});
             if(document.getElementById('screensaver-overlay').style.display === 'flex') document.getElementById('ss-clock').textContent = hmStr;
-            
+
             document.getElementById('date-string').textContent = `${daysSk[now.getDay()].toUpperCase()}, ${now.toLocaleDateString('sk-SK', {day: 'numeric', month: 'long'}).toUpperCase()}`;
 
             if (now.getSeconds() === 0) {
@@ -380,7 +523,7 @@
         async function fetchWeather() {
             document.getElementById('city-search').value = currentLoc.name;
             const url = `https://api.open-meteo.com/v1/forecast?latitude=${currentLoc.lat}&longitude=${currentLoc.lon}&current=temperature_2m,relative_humidity_2m,weather_code,pressure_msl,wind_speed_10m&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=auto`;
-            
+
             try {
                 const res = await fetch(url); const data = await res.json();
                 document.getElementById('curr-temp').textContent = data.current.temperature_2m.toFixed(1);
@@ -408,19 +551,20 @@
         }
 
         function playSynthTone(index) {
-            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
-            osc.connect(gain); gain.connect(audioCtx.destination);
+            const ac = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = ac.createOscillator(); const gain = ac.createGain();
+            osc.connect(gain); gain.connect(ac.destination);
             const tones = [261.63, 293.66, 329.63, 349.23, 392.00, 440.00, 493.88, 523.25, 587.33, 659.25];
-            osc.frequency.setValueAtTime(tones[index] || 440, audioCtx.currentTime);
+            osc.frequency.setValueAtTime(tones[index] || 440, ac.currentTime);
             osc.type = index % 2 === 0 ? 'sawtooth' : 'square';
-            gain.gain.setValueAtTime(0.3, audioCtx.currentTime); osc.start();
-            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 1.5);
-            setTimeout(() => { osc.stop(); audioCtx.close(); }, 1600);
+            gain.gain.setValueAtTime(0.3, ac.currentTime); osc.start();
+            gain.gain.exponentialRampToValueAtTime(0.01, ac.currentTime + 1.5);
+            setTimeout(() => { osc.stop(); ac.close(); }, 1600);
         }
 
         function triggerAlarm(alarm) {
             if(alarm.type === 'radio' && lastRadioUrl) {
+                resumeAudioCtx();
                 streamPlayer.src = lastRadioUrl; streamPlayer.play().catch(()=>{});
             } else {
                 let count = 0; const toneIdx = parseInt(alarm.type) || 0;
@@ -496,7 +640,10 @@
                             lastRadioUrl = st.url_resolved; lastRadioName = st.name;
                             localStorage.setItem('last_radio_url', lastRadioUrl); localStorage.setItem('last_radio_name', lastRadioName);
                             document.getElementById('radio-search').value = st.name;
-                            streamPlayer.src = lastRadioUrl; streamPlayer.play(); box.innerHTML = '';
+                            resumeAudioCtx();
+                            streamPlayer.src = lastRadioUrl; streamPlayer.play();
+                            buildTicker();
+                            box.innerHTML = '';
                         }; box.appendChild(li);
                     }
                 });
@@ -504,7 +651,12 @@
         }
 
         function setVolume(val) { streamPlayer.volume = parseFloat(val); }
-        function toggleMute() { isMuted = !isMuted; streamPlayer.muted = isMuted; document.getElementById('btn-mute').textContent = isMuted ? "UNMUTE" : "MUTE"; }
+        function toggleMute() {
+            isMuted = !isMuted; streamPlayer.muted = isMuted;
+            const btn = document.getElementById('btn-mute');
+            btn.textContent = isMuted ? "Unmute" : "Mute";
+            btn.classList.toggle('is-muted', isMuted);
+        }
 
         fetchWeather(); setInterval(fetchWeather, 600000); setTimeout(requestWakeLock, 1500);
     </script>
