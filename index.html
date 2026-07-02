@@ -192,11 +192,11 @@
             /* row-search a row-metrics sa "rozbalia" — ich deti (mesto/rádio/teplota/vlhkosť/tlak)
                sa stanú priamymi flex prvkami main-layoutu, takže ich vieme voľne poprehadzovať cez order */
             .row-search, .row-metrics { display: contents; }
-            .metric-card.temp { order: 2; flex: 1 1 18%; }
-            .metric-card.hum { order: 3; flex: 1 1 18%; }
-            .metric-card.press { order: 4; flex: 1 1 18%; }
-            .search-group.mesto { order: 5; flex: 1 1 22%; }
-            .search-group.radio { order: 6; flex: 1 1 22%; }
+            .metric-card.temp { order: 2; flex: 1 1 0; min-width: 0; }
+            .metric-card.hum { order: 3; flex: 1 1 0; min-width: 0; }
+            .metric-card.press { order: 4; flex: 1 1 0; min-width: 0; }
+            .search-group.mesto { order: 5; flex: 1.3 1 0; min-width: 0; }
+            .search-group.radio { order: 6; flex: 1.3 1 0; min-width: 0; }
 
             .hero-block {
                 flex-direction: column; align-items: stretch; justify-content: center; gap: clamp(8px, 1.6dvh, 14px);
