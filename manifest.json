@@ -1,10 +1,10 @@
 {
-  "name": "N7 Mass Effect Perfect-Scale Station",
-  "short_name": "N7Meteo",
-  "start_url": ".",
+  "name": "Meteo Panel",
+  "short_name": "Meteo",
+  "start_url": "index.html",
   "display": "fullscreen",
   "orientation": "any",
-  "background_color": "#030407",
-  "theme_color": "#ff5500",
+  "background_color": "#0c0d10",
+  "theme_color": "#0c0d10",
   "icons": [{ "src": "https://cdn-icons-png.flaticon.com/512/869/869869.png", "sizes": "512x512", "type": "image/png" }]
 }

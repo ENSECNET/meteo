@@ -3,480 +3,109 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>N7 Mass Effect Tactical Station</title>
+    <title>Meteostanica</title>
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
     <link rel="manifest" href="manifest.json">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap');
-        
         :root {
-            --bg-color: #030407;
-            --me-orange: #ff5500;
-            --me-blue: #00d2ff;
-            --me-grey: #1a1f29;
-            --me-text: #e2e8f0;
-            --active-day: rgba(255, 85, 0, 0.2);
-            --border-color: rgba(0, 210, 255, 0.2);
+            --bg-color: #0c0d10;
+            --clock-color: #f1c40f;
+            --out-color: #3498db;
+            --in-color: #2ecc71;
+            --card-bg: rgba(255, 255, 255, 0.03);
+            --border-color: #232731;
         }
-
         body {
-            margin: 0; padding: 10px;
-            background-color: var(--bg-color); color: var(--me-text);
-            font-family: 'Share Tech Mono', monospace;
-            height: 100vh; height: -webkit-fill-available;
-            display: flex; flex-direction: column;
-            box-sizing: border-box; overflow: hidden;
-            background-image: radial-gradient(circle at 50% 50%, #0c101b 0%, #030407 100%);
+            margin: 0; padding: 15px;
+            background-color: var(--bg-color);
+            color: #ffffff;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            height: 100vh; display: flex; flex-direction: column;
+            box-sizing: border-box; justify-content: space-between;
+            overflow: hidden;
         }
 
-        /* SCREENSAVER / DIMMER */
-        #screensaver-overlay {
-            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0, 0, 0, 0.95); z-index: 99999;
-            display: none; flex-direction: column; justify-content: center; align-items: center;
-            cursor: pointer;
-        }
-        #ss-clock { font-family: 'Orbitron', sans-serif; font-size: 5rem; color: rgba(255, 85, 0, 0.6); font-weight: 700; text-align: center; }
-        #ss-info { font-size: 1rem; color: rgba(0, 210, 255, 0.4); margin-top: 10px; text-transform: uppercase; }
+        /* --- Ovládacie prvky --- */
+        .controls { display: flex; flex-direction: column; gap: 10px; width: 100%; }
+        .input-group { display: flex; flex-direction: column; gap: 4px; }
+        .input-group label { font-size: 0.7rem; color: #64748b; text-transform: uppercase; }
+        input { padding: 12px; background: #1a1d24; border: 1px solid var(--border-color); border-radius: 6px; color: white; width: 100%; box-sizing: border-box; }
+        button { background: var(--out-color); border: none; padding: 12px; border-radius: 6px; color: white; font-weight: bold; cursor: pointer; }
 
-        /* HEADER BAR */
-        .header-bar {
-            display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end;
-            padding: 8px 12px; background: rgba(26, 31, 41, 0.6);
-            border: 1px solid var(--border-color); border-radius: 6px; gap: 10px; margin-bottom: 8px;
-            flex-shrink: 0;
-        }
-        .btn-me {
-            background: rgba(0,0,0,0.5); border: 1px solid var(--me-orange);
-            color: var(--me-orange); font-family: 'Orbitron', sans-serif; font-size: 0.8rem; font-weight: bold; cursor: pointer; text-transform: uppercase;
-            padding: 8px 15px; border-radius: 4px; transition: 0.2s;
-        }
-        .btn-me:hover { background: var(--me-orange); color: #000; }
-        .btn-gps { flex-shrink: 0; height: 42px; }
-
-        .search-group { display: flex; flex-direction: column; flex: 1; min-width: 150px; gap: 5px; }
-        .search-group label { font-size: 0.75rem; color: var(--me-blue); font-weight: bold; text-transform: uppercase; letter-spacing: 1px; }
-        .search-container { position: relative; width: 100%; }
-        .search-container input {
-            width: 100%; padding: 10px 12px; background: #000; border: 1px solid var(--me-blue);
-            border-radius: 4px; color: #fff; font-family: 'Share Tech Mono', monospace; font-size: 0.95rem; box-sizing: border-box;
-        }
-        .sug-box {
-            position: absolute; top: 100%; left: 0; right: 0; background: #090d14;
-            border: 1px solid var(--me-blue); border-top: none; list-style: none; margin: 0; padding: 0; max-height: 150px; overflow-y: auto; z-index: 999;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.8); border-radius: 0 0 6px 6px;
-        }
-        .sug-box li { padding: 10px 12px; cursor: pointer; border-bottom: 1px solid #141b29; font-size: 0.85rem; }
-        .sug-box li:hover { background: var(--me-orange); color: #000; }
+        /* --- Layout --- */
+        .main-layout { display: flex; flex-direction: column; flex-grow: 1; justify-content: center; gap: 15px; }
         
-        .audio-controls { display: flex; align-items: center; gap: 8px; background: rgba(0,0,0,0.4); padding: 6px 12px; border-radius: 4px; height: 42px; box-sizing: border-box; }
-        .vol-slider { -webkit-appearance: none; width: 60px; height: 4px; background: #333; outline: none; }
-        .vol-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 12px; height: 12px; background: var(--me-blue); cursor: pointer; border-radius: 50%; }
+        /* --- Hodiny v strede --- */
+        .clock-container { text-align: center; }
+        #time { font-size: 5rem; font-weight: 800; color: var(--clock-color); line-height: 1; }
+        #date { font-size: 1.2rem; color: #8892b0; }
 
-        /* MAIN LAYOUT */
-        .main-layout { display: flex; flex-direction: column; justify-content: space-between; flex-grow: 1; gap: 10px; min-height: 0; }
+        /* --- Metriky --- */
+        .metrics { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+        .m-card { background: var(--card-bg); border: 1px solid var(--border-color); padding: 10px; border-radius: 8px; text-align: center; }
+        .m-card span { display: block; font-size: 0.7rem; color: #64748b; }
+        .m-card b { font-size: 1.1rem; }
 
-        /* 1. WEEK FORECAST */
-        .week-forecast { display: grid; gap: 6px; min-height: 0; }
-        .day-card {
-            background: rgba(10, 14, 23, 0.8); border: 1px solid rgba(0, 212, 255, 0.1);
-            box-sizing: border-box; display: flex; align-items: center; justify-content: space-between; border-radius: 4px;
-        }
-        .day-card.current { border-color: var(--me-orange); background: var(--active-day); }
-        .day-name { font-family: 'Orbitron', sans-serif; font-weight: 700; font-size: 0.85rem; color: var(--me-blue); text-transform: uppercase; }
-        .day-card.current .day-name { color: var(--me-orange); }
-        .day-date { font-size: 0.75rem; color: #888; }
-        .day-icon { font-size: 1.6rem; }
-        .day-temps { font-size: 0.95rem; }
-        .day-temps .hi { color: #ff6b6b; font-weight: bold; }
-        .day-temps .lo { color: #4dadff; }
-        .day-rain { font-size: 0.75rem; color: #aaa; text-transform: uppercase; }
-        .day-rain.yes { color: #00d2ff; font-weight: bold; }
-
-        /* 2. CLOCK */
-        .middle-clock-container { display: flex; justify-content: center; align-items: center; width: 100%; box-sizing: border-box; }
-        .me-clock-box {
-            text-align: center; padding: 15px; background: rgba(0, 0, 0, 0.4); width: 100%; box-sizing: border-box;
-            border-left: 4px solid var(--me-orange); border-right: 4px solid var(--me-blue);
-            cursor: pointer; border-radius: 8px;
-        }
-        .me-time { font-family: 'Orbitron', sans-serif; font-weight: 900; color: #fff; line-height: 1; display: block; }
-        .me-seconds { color: var(--me-orange); font-weight: 400; vertical-align: baseline; }
-        .me-zone-info { font-size: 0.8rem; color: #64748b; text-transform: uppercase; letter-spacing: 2px; margin-top: 5px; }
-        .hint-click { font-size: 0.65rem; color: #555; text-transform: uppercase; margin-top: 5px; }
-
-        /* 3. METRICS */
-        .bottom-metrics { display: grid; gap: 8px; }
-        .metric-card {
-            background: rgba(10, 14, 23, 0.9); border: 1px solid var(--border-color);
-            padding: 12px; display: flex; flex-direction: column; justify-content: center; box-sizing: border-box; border-radius: 6px;
-        }
-        .metric-label { font-size: 0.75rem; color: #556c85; font-weight: bold; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 2px;}
-        .metric-card.temp-main { border-left: 4px solid var(--me-blue); }
-        .metric-value { font-family: 'Orbitron', sans-serif; font-weight: 700; color: #fff; line-height: 1.1; }
-        .metric-sub { font-size: 0.8rem; color: #8892b0; margin-top: 2px;}
-        .metric-sub b { color: var(--me-orange); }
-
-        /* ALARM OVERLAY */
-        .alarm-overlay {
-            position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(3, 4, 7, 0.98); z-index: 10000;
-            display: none; padding: 20px; box-sizing: border-box; flex-direction: column;
-        }
-        .alarm-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--me-orange); padding-bottom: 10px; margin-bottom: 15px; }
-        .alarm-title { font-family: 'Orbitron', sans-serif; font-size: 1.3rem; color: var(--me-orange); }
-        .alarm-grid-list { display: grid; gap: 10px; overflow-y: auto; flex: 1; }
-        .alarm-item-card { background: #111622; border: 1px solid #222e45; padding: 12px; display: flex; flex-direction: column; justify-content: space-between; border-radius: 4px; }
-        .alarm-item-card.enabled { border-color: var(--me-blue); }
-        .alarm-time-row { display: flex; justify-content: space-between; align-items: center; }
-        .alarm-time-picker { background: #000; color: #fff; border: 1px solid var(--me-blue); font-size: 1.3rem; padding: 4px; font-family: monospace; width: 100px;}
-        .alarm-item-card input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--me-orange); }
-        .alarm-config-row { display: flex; gap: 8px; margin-top: 8px; align-items: center; font-size: 0.85rem; }
-        .alarm-sound-select { background: #000; color: #fff; border: 1px solid #445; padding: 5px; flex: 1; font-size: 0.85rem; }
-
-        .unit { font-size: 0.45em; vertical-align: super; font-weight: normal; color: #64748b; }
-        .wakelock-status { font-size: 0.7rem; color: #4ade80; text-transform: uppercase; float: right; }
-
-        /* =========================================
-           📱 MEDIA QUERIES (LANDSCAPE VS PORTRAIT)
-           ========================================= */
-        
-        /* 📐 LANDSCAPE (NA LEŽATO) */
+        /* --- LANDSCAPE (Pre tablety v držiaku) --- */
         @media (orientation: landscape) {
-            .week-forecast { grid-template-columns: repeat(7, 1fr); }
-            .day-card { flex-direction: column; justify-content: space-between; padding: 8px 4px; height: 100%; text-align: center; }
-            .bottom-metrics { grid-template-columns: 1.2fr 1fr 1fr; }
-            .me-time { font-size: 6rem; letter-spacing: -2px; }
-            .me-seconds { font-size: 0.35em; }
-            .metric-value { font-size: 3rem; }
-            .alarm-grid-list { grid-template-columns: repeat(2, 1fr); }
-        }
-
-        /* 📱 PORTRAIT (NA STOJATO) */
-        @media (orientation: portrait) {
-            body { padding: 12px; gap: 15px; }
-            
-            /* HEADER - Full width elements stacked */
-            .header-bar { flex-direction: column; align-items: stretch; padding: 15px; gap: 15px; border-radius: 8px; }
-            .btn-gps { padding: 16px; font-size: 1.15rem; width: 100%; height: auto; }
-            .search-group { width: 100%; }
-            .search-container input { padding: 14px 15px; font-size: 1.1rem; }
-            .audio-controls { justify-content: space-between; padding: 12px; height: auto; }
-            .vol-slider { width: 100px; }
-            
-            /* MAIN LAYOUT REORDER */
-            .main-layout { justify-content: center; gap: 10px; }
-            
-            /* 1. CLOCK HUGE */
-            .middle-clock-container { order: 1; margin: 20px 0; flex-grow: 1; }
-            .me-time { font-size: 18vw; letter-spacing: -3px; } 
-            .me-seconds { font-size: 6vw; }
-            
-            /* 2. FORECAST SLIM ROWS */
-            .week-forecast { order: 2; grid-template-columns: 1fr; gap: 4px; }
-            .day-card { padding: 8px 12px; border-radius: 6px; }
-            .day-name { font-size: 0.85rem; min-width: 45px; }
-            .day-date { font-size: 0.8rem; min-width: 45px; }
-            .day-icon { font-size: 1.3rem; }
-            .day-temps { font-size: 0.9rem; min-width: 60px; text-align: right; }
-            .day-rain { font-size: 0.8rem; min-width: 80px; text-align: right; }
-
-            /* 3. METRICS AT BOTTOM */
-            .bottom-metrics { order: 3; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 10px; } 
-            .metric-card { padding: 10px 5px; text-align: center; align-items: center; border-radius: 6px; }
-            .metric-label { font-size: 0.65rem; white-space: nowrap; }
-            .metric-value { font-size: 1.6rem; margin-top: 4px; }
-            .metric-sub { display: none; } /* Hide extra text to keep it clean */
-            
-            .alarm-grid-list { grid-template-columns: 1fr; }
+            body { flex-direction: row; align-items: center; gap: 20px; }
+            .controls { width: 300px; }
+            .main-layout { flex-grow: 1; height: 100%; justify-content: space-around; }
+            #time { font-size: 8rem; }
+            .metrics { grid-template-columns: 1fr 1fr 1fr; }
         }
     </style>
 </head>
 <body>
 
-    <!-- OVERLAY SCREENSAVER -->
-    <div id="screensaver-overlay" onclick="disableScreensaver()">
-        <div id="ss-clock">00:00</div>
-        <div id="ss-info">Prebudiť N7 stanicu</div>
-    </div>
-
-    <!-- CONTROL HEADER -->
-    <div class="header-bar">
-        <button class="btn-me btn-gps" onclick="getLocationByGPS()">GPS 📍 Zamerať Polohu</button>
-        
-        <div class="search-group">
-            <label>Mesto pre počasie <span id="wl-indicator" class="wakelock-status">[WAKE ON]</span></label>
-            <div class="search-container">
-                <input type="text" id="city-search" placeholder="Hľadať mesto..." oninput="searchCity()" onfocus="this.select()">
-                <ul id="city-sug" class="sug-box"></ul>
-            </div>
-        </div>
-        
-        <div class="search-group">
-            <label>Internetové Rádio</label>
-            <div class="search-container">
-                <input type="text" id="radio-search" placeholder="Hľadať rádio..." oninput="searchRadio()" onfocus="this.select()">
-                <ul id="radio-sug" class="sug-box"></ul>
-            </div>
-        </div>
-        
-        <div class="audio-controls">
-            <input type="range" id="vol-control" class="vol-slider" min="0" max="1" step="0.05" value="0.7" oninput="setVolume(this.value)">
-            <button class="btn-me" style="padding:6px 12px; border-color:var(--me-blue); color:var(--me-blue);" id="btn-mute" onclick="toggleMute()">Mute</button>
-            <button class="btn-me" style="padding:6px 12px; border-color:#4ade80; color:#4ade80;" onclick="enableScreensaver()">Dim 🌙</button>
+    <div class="controls">
+        <button onclick="getLocationByGPS()">GPS Poloha</button>
+        <div class="input-group">
+            <label>Mesto</label>
+            <input type="text" id="search-input" placeholder="Zadaj mesto...">
         </div>
     </div>
 
-    <!-- DYNAMIC CORE LAYOUT -->
     <div class="main-layout">
-        <!-- 1. WEEK FORECAST -->
-        <div class="week-forecast" id="week-bar"></div>
-
-        <!-- 2. MIDDLE MASS EFFECT CLOCK -->
-        <div class="middle-clock-container">
-            <div class="me-clock-box" onclick="openAlarmSettings()">
-                <div class="me-time"><span id="time-hm">00:00</span><span class="me-seconds" id="time-s">00</span></div>
-                <div class="me-zone-info" id="date-string">PONDELOK, 1. JANUÁR</div>
-                <div class="hint-click">➔ Nastavenie budíkov & automatizácie</div>
-            </div>
+        <div class="clock-container">
+            <div id="time">00:00</div>
+            <div id="date">--.--.----</div>
         </div>
-
-        <!-- 3. CURRENT METRICS -->
-        <div class="bottom-metrics">
-            <div class="metric-card temp-main">
-                <div class="metric-label">Teplota</div>
-                <div class="metric-value"><span id="curr-temp">--.-</span><span class="unit">°C</span></div>
-                <div class="metric-sub">Max: <b id="curr-hi">--°C</b></div>
-            </div>
-            <div class="metric-card">
-                <div class="metric-label">Vlhkosť</div>
-                <div class="metric-value"><span id="curr-hum">--</span><span class="unit">%</span></div>
-                <div class="metric-sub">Vietor: <b id="curr-wind">-- km/h</b></div>
-            </div>
-            <div class="metric-card">
-                <div class="metric-label">Tlak</div>
-                <div class="metric-value"><span id="curr-press">----</span><span class="unit">hPa</span></div>
-                <div class="metric-sub">N7 Station</div>
-            </div>
+        <div class="metrics">
+            <div class="m-card"><span>TEPLOTA</span><b id="out-temp">--</b></div>
+            <div class="m-card"><span>VLHKOSŤ</span><b id="out-hum">--</b></div>
+            <div class="m-card"><span>TLAK</span><b id="pressure">--</b></div>
         </div>
     </div>
-
-    <!-- 5. ALARM OVERLAY PANEL -->
-    <div class="alarm-overlay" id="alarm-panel">
-        <div class="alarm-header">
-            <div class="alarm-title">Konfigurácia Budení & Automatizácie</div>
-            <button class="btn-me" onclick="closeAlarmSettings()">Uložiť & Zavrieť X</button>
-        </div>
-        <div class="alarm-grid-list" id="alarm-list-container"></div>
-    </div>
-
-    <audio id="stream-player" preload="none"></audio>
 
     <script>
-        let currentLoc = JSON.parse(localStorage.getItem('selected_location')) || { name: "Bratislava", lat: 48.1482, lon: 17.1067 };
-        let lastRadioUrl = localStorage.getItem('last_radio_url') || "https://stream.funradio.sk/fun128.mp3";
-        let lastRadioName = localStorage.getItem('last_radio_name') || "Fun Rádio";
-        let isMuted = false;
-        let alarmTimeoutActive = false;
-        let wakeLock = null;
-
-        const streamPlayer = document.getElementById('stream-player');
-        const daysSk = ["Nedeľa", "Pondelok", "Utorok", "Streda", "Štvrtok", "Piatok", "Sobota"];
-        const weatherIcons = {
-            0: "☀️", 1: "🌤️", 2: "⛅", 3: "☁️", 45: "🌫️", 48: "🌫️",
-            51: "🌧️", 53: "🌧️", 55: "🌧️", 61: "🌧️", 63: "🌧️", 65: "🌧️",
-            71: "❄️", 73: "❄️", 75: "❄️", 80: "🌦️", 81: "🌦️", 82: "⛈️", 95: "⛈️"
-        };
-
-        let alarms = JSON.parse(localStorage.getItem('weather_alarms')) || [];
-        if (alarms.length === 0) {
-            for(let i=1; i<=10; i++) {
-                alarms.push({ id: i, time: `0${i}:00`.slice(-5), enabled: false, type: 'radio' });
-            }
-        }
-
-        document.getElementById('radio-search').value = lastRadioName;
-        streamPlayer.volume = parseFloat(document.getElementById('vol-control').value);
-
-        async function requestWakeLock() {
-            try {
-                if ('wakeLock' in navigator) {
-                    wakeLock = await navigator.wakeLock.request('screen');
-                    document.getElementById('wl-indicator').textContent = "[WAKE ON]";
-                    document.getElementById('wl-indicator').style.color = "#4ade80";
-                }
-            } catch (err) {}
-        }
-        document.addEventListener('visibilitychange', async () => {
-            if (wakeLock !== null && document.visibilityState === 'visible') await requestWakeLock();
-        });
-        document.addEventListener('click', () => { if(!wakeLock) requestWakeLock(); }, { once: true });
-
-        // Close dropdowns on outside click
-        document.addEventListener('click', (e) => {
-            if(!e.target.closest('#city-search') && !e.target.closest('#city-sug')) document.getElementById('city-sug').innerHTML = '';
-            if(!e.target.closest('#radio-search') && !e.target.closest('#radio-sug')) document.getElementById('radio-sug').innerHTML = '';
-        });
-
-        let ssTimeout;
-        function resetScreensaverTimer() { clearTimeout(ssTimeout); ssTimeout = setTimeout(enableScreensaver, 300000); }
-        window.onload = resetScreensaverTimer; document.onmousemove = resetScreensaverTimer; document.ontouchstart = resetScreensaverTimer;
-
-        function enableScreensaver() {
-            const now = new Date();
-            document.getElementById('ss-clock').textContent = now.toLocaleTimeString('sk-SK', {hour: '2-digit', minute:'2-digit'});
-            document.getElementById('screensaver-overlay').style.display = 'flex';
-        }
-        function disableScreensaver() { document.getElementById('screensaver-overlay').style.display = 'none'; resetScreensaverTimer(); }
-
         function updateClock() {
             const now = new Date();
-            const hmStr = now.toLocaleTimeString('sk-SK', {hour: '2-digit', minute:'2-digit'});
-            document.getElementById('time-hm').textContent = hmStr;
-            document.getElementById('time-s').textContent = now.toLocaleTimeString('sk-SK', {second: '2-digit'});
-            if(document.getElementById('screensaver-overlay').style.display === 'flex') document.getElementById('ss-clock').textContent = hmStr;
-            
-            document.getElementById('date-string').textContent = `${daysSk[now.getDay()].toUpperCase()}, ${now.toLocaleDateString('sk-SK', {day: 'numeric', month: 'long'}).toUpperCase()}`;
-
-            if (now.getSeconds() === 0) {
-                const currentTimeStr = now.toTimeString().substring(0, 5);
-                alarms.forEach(al => {
-                    if (al.enabled && al.time === currentTimeStr) { disableScreensaver(); triggerAlarm(al); }
-                });
-            }
+            document.getElementById('time').textContent = now.toLocaleTimeString('sk-SK', {hour: '2-digit', minute:'2-digit'});
+            document.getElementById('date').textContent = now.toLocaleDateString('sk-SK', {day: 'numeric', month: 'long'});
         }
-        setInterval(updateClock, 1000); updateClock();
+        setInterval(updateClock, 1000);
+        updateClock();
 
-        async function fetchWeather() {
-            document.getElementById('city-search').value = currentLoc.name;
-            const url = `https://api.open-meteo.com/v1/forecast?latitude=${currentLoc.lat}&longitude=${currentLoc.lon}&current=temperature_2m,relative_humidity_2m,weather_code,pressure_msl,wind_speed_10m&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=auto`;
-            
-            try {
-                const res = await fetch(url); const data = await res.json();
-                document.getElementById('curr-temp').textContent = data.current.temperature_2m.toFixed(1);
-                document.getElementById('curr-hum').textContent = data.current.relative_humidity_2m;
-                document.getElementById('curr-press').textContent = Math.round(data.current.pressure_msl);
-                document.getElementById('curr-wind').textContent = data.current.wind_speed_10m.toFixed(0);
-                document.getElementById('curr-hi').textContent = Math.round(data.daily.temperature_2m_max[0]) + "°C";
-
-                const weekBar = document.getElementById('week-bar'); weekBar.innerHTML = '';
-                const today = new Date();
-                for(let i=0; i<7; i++) {
-                    const fDate = new Date(); fDate.setDate(today.getDate() + i);
-                    const card = document.createElement('div'); card.className = `day-card ${i===0?'current':''}`;
-                    const probRain = data.daily.precipitation_probability_max[i] || 0;
-                    card.innerHTML = `
-                        <div class="day-name">${i===0?"Dnes":daysSk[fDate.getDay()].substring(0,3)}</div>
-                        <div class="day-date">${fDate.toLocaleDateString('sk-SK',{day:'numeric',month:'numeric.'})}</div>
-                        <div class="day-icon">${weatherIcons[data.daily.weather_code[i]]||"☁️"}</div>
-                        <div class="day-temps"><span class="hi">${Math.round(data.daily.temperature_2m_max[i])}°</span> / <span class="lo">${Math.round(data.daily.temperature_2m_min[i])}°</span></div>
-                        <div class="day-rain ${probRain>30?'yes':''}">${probRain>30?`Prší (${probRain}%)`:'Neprší'}</div>
-                    `;
-                    weekBar.appendChild(card);
-                }
-            } catch(e) {}
-        }
-
-        function playSynthTone(index) {
-            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
-            osc.connect(gain); gain.connect(audioCtx.destination);
-            const tones = [261.63, 293.66, 329.63, 349.23, 392.00, 440.00, 493.88, 523.25, 587.33, 659.25];
-            osc.frequency.setValueAtTime(tones[index] || 440, audioCtx.currentTime);
-            osc.type = index % 2 === 0 ? 'sawtooth' : 'square';
-            gain.gain.setValueAtTime(0.3, audioCtx.currentTime); osc.start();
-            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 1.5);
-            setTimeout(() => { osc.stop(); audioCtx.close(); }, 1600);
-        }
-
-        function triggerAlarm(alarm) {
-            if(alarm.type === 'radio' && lastRadioUrl) {
-                streamPlayer.src = lastRadioUrl; streamPlayer.play().catch(()=>{});
-            } else {
-                let count = 0; const toneIdx = parseInt(alarm.type) || 0;
-                const loop = setInterval(() => {
-                    if(!alarmTimeoutActive && count < 5) { playSynthTone(toneIdx); count++; } else { clearInterval(loop); }
-                }, 2000);
-            }
-        }
-
-        function openAlarmSettings() {
-            const container = document.getElementById('alarm-list-container'); container.innerHTML = '';
-            alarms.forEach((al) => {
-                const card = document.createElement('div'); card.className = `alarm-item-card ${al.enabled ? 'enabled' : ''}`;
-                let soundOpts = `<option value="radio" ${al.type==='radio'?'selected':''}>📻 Rádio (${lastRadioName})</option>`;
-                for(let t=0; t<10; t++) soundOpts += `<option value="${t}" ${al.type==t?'selected':''}>🎵 Synth #${t+1}</option>`;
-                card.innerHTML = `
-                    <div class="alarm-time-row">
-                        <label style="color:var(--me-blue);font-weight:bold;">Budenie #${al.id}</label>
-                        <input type="checkbox" ${al.enabled?'checked':''} onchange="toggleAlarmSlot(${al.id}, this.checked)">
-                    </div>
-                    <div class="alarm-config-row">
-                        <input type="time" class="alarm-time-picker" value="${al.time}" onchange="changeAlarmTime(${al.id}, this.value)">
-                        <select class="alarm-sound-select" onchange="changeAlarmSound(${al.id}, this.value)">${soundOpts}</select>
-                    </div>`;
-                container.appendChild(card);
-            });
-            document.getElementById('alarm-panel').style.display = 'flex';
-        }
-        function closeAlarmSettings() { document.getElementById('alarm-panel').style.display = 'none'; localStorage.setItem('weather_alarms', JSON.stringify(alarms)); }
-        function toggleAlarmSlot(id, checked) { alarms.find(a => a.id === id).enabled = checked; }
-        function changeAlarmTime(id, val) { alarms.find(a => a.id === id).time = val; }
-        function changeAlarmSound(id, val) { alarms.find(a => a.id === id).type = val; }
-
-        async function searchCity() {
-            const query = document.getElementById('city-search').value;
-            const box = document.getElementById('city-sug'); if(query.length < 3) { box.innerHTML = ''; return; }
-            try {
-                const res = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query)}&count=5&language=sk`);
-                const data = await res.json(); box.innerHTML = '';
-                if(data.results) {
-                    data.results.forEach(city => {
-                        const li = document.createElement('li'); li.textContent = `${city.name}, ${city.country || ''}`;
-                        li.onclick = () => {
-                            currentLoc = { name: city.name, lat: city.latitude, lon: city.longitude };
-                            localStorage.setItem('selected_location', JSON.stringify(currentLoc));
-                            fetchWeather(); box.innerHTML = '';
-                        }; box.appendChild(li);
-                    });
-                }
-            } catch(e) {}
+        async function fetchWeather(lat, lon, name) {
+            const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,pressure_msl`;
+            const res = await fetch(url);
+            const data = await res.json();
+            document.getElementById('out-temp').textContent = data.current.temperature_2m + "°C";
+            document.getElementById('out-hum').textContent = data.current.relative_humidity_2m + "%";
+            document.getElementById('pressure').textContent = Math.round(data.current.pressure_msl) + " hPa";
         }
 
         function getLocationByGPS() {
-            if (navigator.geolocation) {
-                document.getElementById('city-search').value = "Hľadám GPS...";
-                navigator.geolocation.getCurrentPosition(position => {
-                    currentLoc = { name: "📍 Lokálna GPS", lat: position.coords.latitude, lon: position.coords.longitude };
-                    localStorage.setItem('selected_location', JSON.stringify(currentLoc)); fetchWeather();
-                });
-            }
+            navigator.geolocation.getCurrentPosition(pos => {
+                fetchWeather(pos.coords.latitude, pos.coords.longitude);
+            });
         }
-
-        async function searchRadio() {
-            const query = document.getElementById('radio-search').value;
-            const box = document.getElementById('radio-sug'); if(query.length < 3) { box.innerHTML = ''; return; }
-            try {
-                const res = await fetch(`https://de1.api.radio-browser.info/json/stations/byname/${encodeURIComponent(query)}?limit=5`);
-                const stations = await res.json(); box.innerHTML = '';
-                stations.forEach(st => {
-                    if(st.url_resolved) {
-                        const li = document.createElement('li'); li.textContent = `📻 ${st.name}`;
-                        li.onclick = () => {
-                            lastRadioUrl = st.url_resolved; lastRadioName = st.name;
-                            localStorage.setItem('last_radio_url', lastRadioUrl); localStorage.setItem('last_radio_name', lastRadioName);
-                            document.getElementById('radio-search').value = st.name;
-                            streamPlayer.src = lastRadioUrl; streamPlayer.play(); box.innerHTML = '';
-                        }; box.appendChild(li);
-                    }
-                });
-            } catch(e) {}
-        }
-
-        function setVolume(val) { streamPlayer.volume = parseFloat(val); }
-        function toggleMute() { isMuted = !isMuted; streamPlayer.muted = isMuted; document.getElementById('btn-mute').textContent = isMuted ? "UNMUTE" : "MUTE"; }
-
-        fetchWeather(); setInterval(fetchWeather, 600000); setTimeout(requestWakeLock, 1500);
+        
+        // Initial load (Bratislava)
+        fetchWeather(48.1482, 17.1067);
     </script>
 </body>
 </html>
